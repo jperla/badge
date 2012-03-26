@@ -12,7 +12,7 @@ public class BadgeActivity extends Activity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        TextView tv = new TextView(this)
+        TextView tv = new TextView(this);
         tv.setText("Hello, Android");
         setContentView(tv);
     }
