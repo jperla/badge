@@ -7,12 +7,13 @@ import android.hardware.SensorManager;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorEvent;
 import android.os.Bundle;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 public class BadgeActivity extends Activity implements SensorEventListener
 {
 
-    TextView tv;
+    TextView debug_tv;
     SensorManager sm;
     Sensor acc_sensor;
     Sensor mag_sensor;
@@ -26,13 +27,10 @@ public class BadgeActivity extends Activity implements SensorEventListener
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        // Create a text view.
-        tv = new TextView(this);
-        tv.setText("");
-        setContentView(tv);
+        debug_tv = (TextView) findViewById(R.id.debug);
 
         // Fetch the sensor manager.
-        Context c = tv.getContext();
+        Context c = debug_tv.getContext();
         sm = (SensorManager) c.getSystemService(SENSOR_SERVICE);
 
         // Register a listener for the accelerometer.
@@ -82,17 +80,26 @@ public class BadgeActivity extends Activity implements SensorEventListener
             float[] R = new float[16];
             float[] I = new float[16];
 
-            SensorManager.getRotationMatrix(R, I, acceleration_vals, magnetic_vals);
+            SensorManager.getRotationMatrix(R, I, acceleration_vals, 
+                magnetic_vals);
 
             float[] orientation = new float[3];
             SensorManager.getOrientation(R, orientation);
-            tv.setText("Azimuth: " + orientation[0] + "\n" +
-                       "Pitch: "   + orientation[1] + "\n" +
-                       "Roll: "    + orientation[2] + "\n");
+            debug_tv.setText("Azimuth: " + orientation[0] + "\n" +
+                             "Pitch: "   + orientation[1] + "\n" +
+                             "Roll: "    + orientation[2] + "\n");
 
             acceleration_vals = null;
             magnetic_vals = null;
         }
+    }
+
+    void showBadgeView()
+    {
+    }
+
+    void showScheduleView()
+    {
     }
 
 }
