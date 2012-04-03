@@ -2,6 +2,7 @@ package com.jperla.badge;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.hardware.SensorEventListener;
@@ -26,6 +27,7 @@ public class BadgeActivity extends Activity implements SensorEventListener
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         debug_tv = (TextView) findViewById(R.id.debug);
 
@@ -91,6 +93,21 @@ public class BadgeActivity extends Activity implements SensorEventListener
 
             acceleration_vals = null;
             magnetic_vals = null;
+
+            // Use the pitch to determine whether we are in ID mode or
+            // conference mode.
+            if (orientation[1] <= 0)
+            {
+                this.setRequestedOrientation(
+                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                debug_tv.setText("ID mode");
+            }
+            else
+            {
+                debug_tv.setText("Conference mode");
+                this.setRequestedOrientation(
+                    ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
+            }
         }
     }
 
