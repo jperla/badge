@@ -10,10 +10,12 @@ import android.hardware.SensorEvent;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ViewSwitcher;
 
 public class BadgeActivity extends Activity implements SensorEventListener
 {
 
+    ViewSwitcher switcher;
     TextView debug_tv;
     SensorManager sm;
     Sensor acc_sensor;
@@ -29,6 +31,7 @@ public class BadgeActivity extends Activity implements SensorEventListener
         setContentView(R.layout.main);
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        switcher = (ViewSwitcher) findViewById(R.id.modeSwitcher);
         debug_tv = (TextView) findViewById(R.id.debug);
 
         // Fetch the sensor manager.
@@ -87,9 +90,6 @@ public class BadgeActivity extends Activity implements SensorEventListener
 
             float[] orientation = new float[3];
             SensorManager.getOrientation(R, orientation);
-            debug_tv.setText("Azimuth: " + orientation[0] + "\n" +
-                             "Pitch: "   + orientation[1] + "\n" +
-                             "Roll: "    + orientation[2] + "\n");
 
             acceleration_vals = null;
             magnetic_vals = null;
@@ -97,26 +97,28 @@ public class BadgeActivity extends Activity implements SensorEventListener
             // Use the pitch to determine whether we are in ID mode or
             // conference mode.
             if (orientation[1] <= 0)
-            {
+            {   // we're in conference mode
                 this.setRequestedOrientation(
                     ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                debug_tv.setText("ID mode");
+                showScheduleView();
             }
             else
-            {
-                debug_tv.setText("Conference mode");
+            {   // we're in ID mode
                 this.setRequestedOrientation(
                     ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
+                showBadgeView();
             }
         }
     }
 
     void showBadgeView()
     {
+        switcher.setDisplayedChild(0);
     }
 
     void showScheduleView()
     {
+        switcher.setDisplayedChild(1);
     }
 
 }

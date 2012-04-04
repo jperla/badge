@@ -1,44 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<ViewSwitcher xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/modeSwitcher"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:gravity="top"
     >
-<ImageView
-    android:id="@+id/photo_id"
-    android:src="@drawable/photo_id"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:layout_weight="3"
-    />
 
-<TextView
-    android:id="@+id/name"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:layout_weight="1"
-    android:gravity="center"
-    android:textSize="40sp"
-    android:text="Zhao Xu"
-    />
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:gravity="top"
+        >
+        <ImageView
+            android:id="@+id/photo_id"
+            android:src="@drawable/photo_id"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            />
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textSize="40sp"
+            android:text="Zhao Xu"
+            />
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textSize="30sp"
+            android:text="Princeton University"
+            />
+    </LinearLayout>
 
-<TextView
-    android:id="@+id/name"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:layout_weight="1"
-    android:gravity="center"
-    android:textSize="30sp"
-    android:text="Princeton University"
-    />
-
-<TextView
-    android:id="@+id/debug"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:text=""
-    />
-
-</LinearLayout>
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:gravity="top"
+        >
+        <ImageView
+            android:id="@+id/schedule"
+            android:src="@drawable/schedule"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            />
+    </LinearLayout>
+</ViewSwitcher>
 
