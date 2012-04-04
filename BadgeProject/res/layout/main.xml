@@ -8,15 +8,29 @@
 <ImageView
     android:id="@+id/photo_id"
     android:src="@drawable/photo_id"
-    android:layout_width="wrap_content"
+    android:layout_width="fill_parent"
     android:layout_height="wrap_content"
+    android:layout_weight="3"
     />
 
 <TextView
     android:id="@+id/name"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:text="Zhao"
+    android:layout_weight="1"
+    android:gravity="center"
+    android:textSize="40sp"
+    android:text="Zhao Xu"
+    />
+
+<TextView
+    android:id="@+id/name"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:gravity="center"
+    android:textSize="30sp"
+    android:text="Princeton University"
     />
 
 <TextView
