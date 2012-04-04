@@ -8,15 +8,12 @@ import android.hardware.SensorManager;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorEvent;
 import android.os.Bundle;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
 public class BadgeActivity extends Activity implements SensorEventListener
 {
 
     ViewSwitcher switcher;
-    TextView debug_tv;
     SensorManager sm;
     Sensor acc_sensor;
     Sensor mag_sensor;
@@ -32,10 +29,9 @@ public class BadgeActivity extends Activity implements SensorEventListener
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         switcher = (ViewSwitcher) findViewById(R.id.modeSwitcher);
-        debug_tv = (TextView) findViewById(R.id.debug);
 
         // Fetch the sensor manager.
-        Context c = debug_tv.getContext();
+        Context c = switcher.getContext();
         sm = (SensorManager) c.getSystemService(SENSOR_SERVICE);
 
         // Register a listener for the accelerometer.
