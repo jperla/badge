@@ -37,7 +37,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     float[] acceleration_vals = null;
     float[] magnetic_vals = null;
 
-    String LOG_TAG = "------- Badge -------";
+    String LOG_TAG = "=badge=";
     
     BluetoothAdapter bt_adapter;
 
@@ -79,13 +79,13 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         // Fetch the Bluetooth adapter and make sure it is enabled.
         bt_adapter = BluetoothAdapter.getDefaultAdapter();
         if(bt_adapter == null) {
-            Log.d("=badge=", "ERROR: No Bluetooth adapter found");
+            Log.d(LOG_TAG, "ERROR: No Bluetooth adapter found");
         }
         else {
-            Log.d("=badge=", "Successfully found Bluetooth adapter");
+            Log.d(LOG_TAG, "Successfully found Bluetooth adapter");
         }
 
-        Log.d("=badge=", BT_UUID.toString());
+        Log.d(LOG_TAG, BT_UUID.toString());
 
     }
 
@@ -102,11 +102,11 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         sm.registerListener(this, mag_sensor, SensorManager.SENSOR_DELAY_NORMAL);
 
         if (bt_adapter.isEnabled()) {
-            Log.d("=badge=", "Bluetooth already enabled");
+            Log.d(LOG_TAG, "Bluetooth already enabled");
             tryConnection();
         }
         else {
-            Log.d("=badge=", "Requesting to enable Bluetooth");
+            Log.d(LOG_TAG, "Requesting to enable Bluetooth");
             Intent enable_bt = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enable_bt, BT_ENABLE_ACTIVITY);
         }
@@ -160,16 +160,20 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         {
             case BT_ENABLE_ACTIVITY:
                 if (resultCode == RESULT_OK) {
-                    Log.d("=badge=", "Bluetooth successfully enabled");
+                    Log.d(LOG_TAG, "Bluetooth successfully enabled");
 
                     // Connect to my laptop to test.
                     tryConnection();
                 }
                 else {
-                    Log.d("=badge=", "ERROR: Could not enable Bluetooth.");
+                    Log.d(LOG_TAG, "ERROR: Could not enable Bluetooth.");
                 }
                 break;
         }
+    }
+
+    private class AcceptThread extends Thread {
+
     }
 
     void tryConnection()
@@ -181,9 +185,9 @@ public class BadgeActivity extends Activity implements SensorEventListener {
             // Act as server.
             try {
                 BluetoothServerSocket ss = bt_adapter.listenUsingRfcommWithServiceRecord("badge", BT_UUID);
-                Log.d("=badge=", "Got server socket");
+                Log.d(LOG_TAG, "Got server socket");
                 BluetoothSocket s = ss.accept();
-                Log.d("=badge=", "Accepted connection");
+                Log.d(LOG_TAG, "Accepted connection");
                 
                 ss.close();
 
@@ -192,36 +196,36 @@ public class BadgeActivity extends Activity implements SensorEventListener {
                 InputStream in = s.getInputStream();
                 bytes = in.read(buffer);
                 for (int i = 0; i < bytes; i++) {
-                    Log.d("=badge=", "bytes[" + i + "]" + " = " + buffer[i]);
+                    Log.d(LOG_TAG, "bytes[" + i + "]" + " = " + buffer[i]);
                 }
 
                 s.close();
-                Log.d("=badge=", "Closed socket");
+                Log.d(LOG_TAG, "Closed socket");
             }
             catch (IOException e) {
-                Log.d("=badge=", "ERROR: IOException:" + e.toString());
+                Log.d(LOG_TAG, "ERROR: IOException:" + e.toString());
             }
         }
         else {
             // Act as client.
             BluetoothDevice dev = bt_adapter.getRemoteDevice(joe_mac);
-            Log.d("=badge=", "Attempting to connect");
+            Log.d(LOG_TAG, "Attempting to connect");
             try {
                 BluetoothSocket s = dev.createRfcommSocketToServiceRecord(BT_UUID);
-                Log.d("=badge=", "Created socket");
+                Log.d(LOG_TAG, "Created socket");
                 s.connect();
-                Log.d("=badge=", "Returned from connect");
+                Log.d(LOG_TAG, "Returned from connect");
 
                 byte[] bob = {1, 2, 3, 4};
                 OutputStream out = s.getOutputStream();
                 out.write(bob);
-                Log.d("=badge=", "Sent message");
+                Log.d(LOG_TAG, "Sent message");
 
                 s.close();
-                Log.d("=badge=", "Closed socket");
+                Log.d(LOG_TAG, "Closed socket");
             }
             catch (IOException e) {
-                Log.d("=badge=", "ERROR: IOException:" + e.toString());
+                Log.d(LOG_TAG, "ERROR: IOException:" + e.toString());
             }
         }
 
