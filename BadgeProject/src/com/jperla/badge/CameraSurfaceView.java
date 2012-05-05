@@ -2,22 +2,30 @@ package com.jperla.badge;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.hardware.Camera.Face;
 import android.hardware.Camera.FaceDetectionListener;
+import android.hardware.Camera.PictureCallback;
+import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.SurfaceHolder;
-import android.util.AttributeSet;
-import android.util.Log;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
     private Context context;
     private SurfaceHolder holder;
     private Camera camera;
     private int cameraID;
+    private Timer picTimer;
     private static final String LOG_TAG = "----- SurfaceView -----";
 
     public CameraSurfaceView(Context context) {
@@ -38,6 +46,8 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         this.holder.addCallback(this);
         this.holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
+        picTimer = new Timer();
+
         //camera.setFaceDetectionListener(new MyFaceAnalyzer());
     }
 
@@ -51,6 +61,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         } catch(IOException ioe) {
             ioe.printStackTrace(System.out);
         }
+
     }
 
     @Override
@@ -63,11 +74,19 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         setCameraDisplayOrientation();
         camera.startPreview();
         camera.startFaceDetection();
+
+        picTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                takePicture();
+            }
+        }, 0, 1000);
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         // Surface will be destroyed when replaced with a new screen
+        picTimer.cancel();
         camera.stopFaceDetection();
         camera.stopPreview();
         camera.release();
@@ -80,6 +99,26 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
     public int getCameraID() {
         return this.cameraID;
+    }
+
+    private void takePicture() {
+        camera.takePicture(null, null, new PictureCallback() {
+            @Override
+            public void onPictureTaken(byte[] data, Camera cam) {
+                Log.d(LOG_TAG, "Took picture");
+
+                Bitmap bMap = BitmapFactory.decodeByteArray(data, 0, data.length);
+                ImageView image = (ImageView) findViewById(((Activity) context).R.id.id_bitmap);
+                if (image == null)
+                    Log.d(LOG_TAG, "image is null");
+                image.setImageBitmap(bMap);
+
+
+                cam.startPreview();
+            }
+        });
+
+
     }
 
     private void openFrontCamera() {

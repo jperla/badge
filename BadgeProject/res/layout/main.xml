@@ -15,6 +15,13 @@
             android:id="@+id/surface_view"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
+            />
+        <ImageView
+            android:id="@+id/id_bitmap"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             />
         <TextView
             android:id="@+id/name"
