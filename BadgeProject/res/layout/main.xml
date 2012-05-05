@@ -11,12 +11,10 @@
         android:layout_height="fill_parent"
         android:gravity="top"
         >
-        <ImageView
-            android:id="@+id/photo_id"
-            android:src="@drawable/photo_id"
+        <com.jperla.badge.CameraSurfaceView
+            android:id="@+id/surface_view"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="3"
             />
         <TextView
             android:id="@+id/name"
