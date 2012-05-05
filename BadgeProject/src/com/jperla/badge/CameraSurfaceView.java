@@ -28,6 +28,8 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
     private Timer picTimer;
     private static final String LOG_TAG = "----- SurfaceView -----";
 
+    public ImageView imageView;
+
     public CameraSurfaceView(Context context) {
         super(context);
         this.context = context;
@@ -73,7 +75,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         camera.setParameters(parameters);
         setCameraDisplayOrientation();
         camera.startPreview();
-        camera.startFaceDetection();
+        // camera.startFaceDetection();
 
         picTimer.schedule(new TimerTask() {
             @Override
@@ -87,7 +89,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
     public void surfaceDestroyed(SurfaceHolder holder) {
         // Surface will be destroyed when replaced with a new screen
         picTimer.cancel();
-        camera.stopFaceDetection();
+        // camera.stopFaceDetection();
         camera.stopPreview();
         camera.release();
         camera = null;
@@ -108,10 +110,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
                 Log.d(LOG_TAG, "Took picture");
 
                 Bitmap bMap = BitmapFactory.decodeByteArray(data, 0, data.length);
-                ImageView image = (ImageView) findViewById(((Activity) context).R.id.id_bitmap);
-                if (image == null)
-                    Log.d(LOG_TAG, "image is null");
-                image.setImageBitmap(bMap);
+                imageView.setImageBitmap(bMap);
 
 
                 cam.startPreview();

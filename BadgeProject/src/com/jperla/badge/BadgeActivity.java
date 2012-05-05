@@ -14,6 +14,7 @@ import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.ViewSwitcher;
 
 import java.io.IOException;
@@ -61,6 +62,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
         // Create an area to preview face detection results, and fetch camera
         cam_surface = (CameraSurfaceView) findViewById(R.id.surface_view);
+        cam_surface.imageView = (ImageView) findViewById(R.id.id_bitmap);
 
         // Fetch the sensor manager.
         Context c = switcher.getContext();
