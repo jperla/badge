@@ -163,6 +163,75 @@ public class VCard {
         return B;
     }
 
+    public static VCard getZhao()
+    {
+        VCard Z = new VCard();
+
+        Z.bachelors = true;
+        Z.bachelors_school = "Princeton University";
+        Z.bachelors_gradyear = 2012;
+        Z.bachelors_advisors.add("Szymon Rusinkiewicz");
+
+        Z.jobs.add(new Job("Google", 
+                           "Software Engineering Intern",
+                           2011, 2011));
+
+        Z.talks_attended.add("Javascript: The Good Parts");
+        Z.talks_attended.add("ZebraNet Hardware Design");
+
+        Z.research_interests.add("Computer Vision");
+        Z.research_interests.add("Computer Graphics");
+        Z.research_interests.add("Virtual Worlds");
+
+        return Z;
+    }
+
+    public static VCard intersect(VCard c1, VCard c2) {
+        VCard r = new VCard();
+        if (c1.bachelors && c2.bachelors) {
+            r.bachelors = true;
+            if (sameString(c1.bachelors_school, c2.bachelors_school)) {
+                r.bachelors_school = c1.bachelors_school;
+            }
+            r.bachelors_advisors = intersectList(c1.bachelors_advisors, c2.bachelors_advisors);
+        }
+        if (c1.masters && c2.masters) {
+            r.masters = true;
+            if (sameString(c1.masters_school, c2.masters_school)) {
+                r.masters_school = c1.masters_school;
+            }
+            r.masters_advisors = intersectList(c1.masters_advisors, c2.masters_advisors);
+        }
+        if (c1.phd && c2.phd) {
+            r.phd = true;
+            if (sameString(c1.phd_school, c2.phd_school)) {
+                r.phd_school = c1.phd_school;
+            }
+            r.phd_advisors = intersectList(c1.phd_advisors, c2.phd_advisors);
+        }
+
+        r.jobs = intersectList(c1.jobs, c2.jobs);
+        r.talks_attended = intersectList(c1.talks_attended, c2.talks_attended);
+        r.talks_attending = intersectList(c1.talks_attending, c2.talks_attending);
+        r.talks_given = intersectList(c1.talks_given, c2.talks_given);
+        r.talks_giving = intersectList(c1.talks_giving, c2.talks_giving);
+
+        r.research_interests = intersectList(c1.research_interests, c2.research_interests);
+
+        return r;
+    }
+
+    private static boolean sameString(String s1, String s2) {
+        return (s1 != null) && s1.equals(s2);
+    }
+
+    private static ArrayList intersectList(ArrayList l1, ArrayList l2) {
+        ArrayList result = new ArrayList(l1);
+        result.retainAll(l2);
+        return result;
+    }
+
+
     // Convert to JSON representation to send over network.
     public JSONObject toJSON()
     {
@@ -216,13 +285,20 @@ public class VCard {
     public static void main(String args[]) throws JSONException
     {
         VCard v = getBrandon();
+        // Test converting to json and back
         String s = v.toJSON().toString();
         System.out.println(s + "\n");
         VCard v2 = new VCard(s);
         String s2 = v2.toJSON().toString();
         System.out.println(s2 + "\n");
-        if (s.equals(s2)) System.out.println("SUCCESS!");
-        else System.out.println("FAILURE");
+        if (s.equals(s2)) System.out.println("successfully converted to json and back!");
+        else System.out.println("converting to json and back does not match original");
+
+        // Test list intersection
+        VCard z = getZhao();
+        System.out.println("Zhao's card: \n" + z.toJSON().toString() + "\n");
+        VCard r = VCard.intersect(v, z);
+        System.out.println("Zhao and Brandon's intersection: \n" + r.toJSON().toString() + "\n");
     }
 
 }
