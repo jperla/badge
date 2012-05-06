@@ -1,9 +1,15 @@
 local.properties
-bin/*
-gen/*
+BadgeProject/bin
+BadgeProject/gen
 
 *.swp
 *.DS_Store
 *.o
 *.o.d
 *.class
+FrameMarkers/build
+
+
+FrameMarkers/bin
+FrameMarkers/gen
+FrameMarkers/obj
