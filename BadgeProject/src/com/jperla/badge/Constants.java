@@ -13,6 +13,7 @@ public final class Constants  {
     public static final int BT_CONN_ACCEPTED = 1;
     public static final int BT_CONN_CONNECTED = 2;
     public static final int BT_MSG_RCVD = 3;
+    public static final int PHONE_ID_DETECTED = 4;
 
     private Constants() {
     }

@@ -18,13 +18,19 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.opengl.GLSurfaceView;
+import android.os.Handler;
+import android.os.Message;
 
 import com.qualcomm.QCAR.QCAR;
+
+import com.jperla.badge.Constants;
 
 
 /** The renderer class for the FrameMarkers sample. */
 public class FrameMarkersRenderer implements GLSurfaceView.Renderer
 {
+    Handler handler;
+
     public boolean mIsActive = false;
     
     /** Native function for initializing the renderer. */
@@ -34,6 +40,9 @@ public class FrameMarkersRenderer implements GLSurfaceView.Renderer
     /** Native function to update the renderer. */
     public native void updateRendering(int width, int height);
 
+    public FrameMarkersRenderer(Handler handler) {
+        this.handler = handler;
+    }
     
     /** Called when the surface is created or recreated. */
     public void onSurfaceCreated(GL10 gl, EGLConfig config)
@@ -76,6 +85,7 @@ public class FrameMarkersRenderer implements GLSurfaceView.Renderer
         int id = renderFrame();
         if (id >= 0) {
             DebugLog.LOGD("--- In Renderer.java ---: detected id# " + id);
+            handler.obtainMessage(Constants.PHONE_ID_DETECTED, id, -1, null).sendToTarget();
         }
     }
 }

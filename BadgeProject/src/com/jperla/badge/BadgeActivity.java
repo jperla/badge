@@ -117,6 +117,10 @@ public class BadgeActivity extends Activity implements SensorEventListener {
                         byte[] buffer = (byte[]) msg.obj;
                         rcvMessage(bytes, buffer);
                         break;
+                    case Constants.PHONE_ID_DETECTED:
+                        Log.d(Constants.LOG_TAG, "Handler got phone id: " + msg.arg1);
+                        break;
+
                 }
 
             }

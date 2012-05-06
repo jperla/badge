@@ -180,7 +180,7 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
             indices = &QobjectIndices[0];
             texCoords = &QobjectTexCoords[0];
             numIndices = NUM_Q_OBJECT_INDEX;
-            LOG("----- IN JNI ----- detected marker ID 0");
+            // LOG("----- IN JNI ----- detected marker ID 0");
         
             break;
         case 1:
@@ -189,7 +189,7 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
             indices = &CobjectIndices[0];
             texCoords = &CobjectTexCoords[0];
             numIndices = NUM_C_OBJECT_INDEX;
-            LOG("----- IN JNI ----- detected marker ID 1");
+            // LOG("----- IN JNI ----- detected marker ID 1");
             break;
         case 2:
             vertices = &AobjectVertices[0];
@@ -197,7 +197,7 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
             indices = &AobjectIndices[0];
             texCoords = &AobjectTexCoords[0];
             numIndices = NUM_A_OBJECT_INDEX;
-            LOG("----- IN JNI ----- detected marker ID 2");
+            // LOG("----- IN JNI ----- detected marker ID 2");
             break;
         default:
             vertices = &RobjectVertices[0];
@@ -205,7 +205,7 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
             indices = &RobjectIndices[0];
             texCoords = &RobjectTexCoords[0];
             numIndices = NUM_R_OBJECT_INDEX;
-            LOG("----- IN JNI ----- detected marker ID 3");
+            // LOG("----- IN JNI ----- detected marker ID 3");
             break;
         }
 

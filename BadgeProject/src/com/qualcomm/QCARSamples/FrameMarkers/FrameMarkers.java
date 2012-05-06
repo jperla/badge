@@ -439,7 +439,7 @@ public class FrameMarkers
         mGlView = new QCARSampleGLView(c);
         mGlView.init(mQCARFlags, translucent, depthSize, stencilSize);
         
-        mRenderer = new FrameMarkersRenderer();
+        mRenderer = new FrameMarkersRenderer(handler);
         mGlView.setRenderer(mRenderer);
  
     }
