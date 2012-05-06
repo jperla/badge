@@ -10,6 +10,7 @@ BadgeProject/obj
 *.DS_Store
 *.o
 *.o.d
+*.so
 *.class
 
 FrameMarkers/local.properties

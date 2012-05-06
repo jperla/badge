@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
@@ -29,7 +30,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
 
-// import com.qualcomm.QCARSamples.FrameMarkers;
+import com.qualcomm.QCARSamples.FrameMarkers.FrameMarkers;
 
 public class BadgeActivity extends Activity implements SensorEventListener {
     ViewSwitcher switcher;
@@ -49,6 +50,8 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     static final int BT_ENABLE_ACTIVITY = 1;
     static final String joe_mac = "9C:02:98:70:23:67";
 
+    FrameMarkers fm;
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -64,10 +67,10 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         switcher = (ViewSwitcher) findViewById(R.id.modeSwitcher);
 
         // Create an area to preview face detection results, and fetch camera
-        cam_surface = (CameraSurfaceView) findViewById(R.id.surface_view);
-        cam_surface.imageView = (ImageView) findViewById(R.id.id_bitmap);
+//        cam_surface = (CameraSurfaceView) findViewById(R.id.surface_view);
+//        cam_surface.imageView = (ImageView) findViewById(R.id.id_bitmap);
 
-        cam_surface.imageView.setOnClickListener(click_listener);
+//        cam_surface.imageView.setOnClickListener(click_listener);
 
         // Fetch the sensor manager.
         Context c = switcher.getContext();
@@ -118,17 +121,22 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
             }
         };
+
+        fm = new FrameMarkers(savedInstanceState, c, this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        fm.onPause();
         sm.unregisterListener(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        fm.onResume();
+
         sm.registerListener(this, acc_sensor, SensorManager.SENSOR_DELAY_NORMAL);
         sm.registerListener(this, mag_sensor, SensorManager.SENSOR_DELAY_NORMAL);
 
@@ -141,6 +149,12 @@ public class BadgeActivity extends Activity implements SensorEventListener {
             Intent enable_bt = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enable_bt, BT_ENABLE_ACTIVITY);
         }
+
+    }
+
+    public void onConfigurationChanged(Configuration config) {
+        super.onConfigurationChanged(config);
+        fm.onConfigurationChanged(config);
     }
 
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -295,6 +309,10 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         }
     };
 
+    protected void onDestroy() {
+        super.onDestroy();
+        fm.onDestroy();
+    }
 
 }
 

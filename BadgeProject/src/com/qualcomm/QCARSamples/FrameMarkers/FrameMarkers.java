@@ -18,6 +18,8 @@ import java.util.Vector;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
@@ -39,7 +41,7 @@ import com.jperla.badge.R;
 
 
 /** The main activity for the FrameMarkers sample. */
-public class FrameMarkers extends Activity
+public class FrameMarkers
 {
     // Application status constants:
     private static final int APPSTATUS_UNINITED         = -1;
@@ -57,19 +59,6 @@ public class FrameMarkers extends Activity
 
     // Our OpenGL view:
     private QCARSampleGLView mGlView;
-    
-    // The view to display the sample splash screen:
-    private ImageView mSplashScreenView;
-    
-    // The handler and runnable for the splash screen time out task.
-    private Handler mSplashScreenHandler;
-    private Runnable mSplashScreenRunnable;    
-    
-    // The minimum time the splash screen should be visible:
-    private static final long MIN_SPLASH_SCREEN_TIME = 2000;    
-    
-    // The time when the splash screen has become visible:
-    long mSplashScreenStartTime = 0;
     
     // Our renderer:
     private FrameMarkersRenderer mRenderer;
@@ -95,7 +84,9 @@ public class FrameMarkers extends Activity
     
     // The textures we will use for rendering:
     private Vector<Texture> mTextures;
-    private int mSplashScreenImageResource = 0;
+
+    Context c;
+    Activity a;
     
     /** Static initializer block to load native libraries on start-up. */
     static
@@ -116,7 +107,7 @@ public class FrameMarkers extends Activity
             // Prevent the onDestroy() method to overlap with initialization:
             synchronized (mShutdownLock)
             {
-                QCAR.setInitParameters(FrameMarkers.this, mQCARFlags);
+                QCAR.setInitParameters(a, mQCARFlags);
                 
                 do
                 {
@@ -140,14 +131,6 @@ public class FrameMarkers extends Activity
                 return (mProgressValue > 0);   
             }
         }
-
-        
-        protected void onProgressUpdate(Integer... values)
-        {
-            // Do something with the progress value "values[0]", e.g. update
-            // splash screen, progress bar, etc.
-        }
-
         
         protected void onPostExecute(Boolean result)
         {
@@ -160,45 +143,6 @@ public class FrameMarkers extends Activity
 
                 updateApplicationStatus(APPSTATUS_INIT_TRACKER);
             }
-            else
-            {
-                // Create dialog box for display error:
-                AlertDialog dialogError = new AlertDialog.Builder(FrameMarkers.this).create();
-                dialogError.setButton(
-                    "Close",
-                    new DialogInterface.OnClickListener()
-                    {
-                        public void onClick(DialogInterface dialog, int which)
-                        {
-                            // Exiting application
-                            System.exit(1);
-                        }
-                    }
-                ); 
-                
-                String logMessage;
-
-                // NOTE: Check if initialization failed because the device is
-                // not supported. At this point the user should be informed
-                // with a message.
-                if (mProgressValue == QCAR.INIT_DEVICE_NOT_SUPPORTED)
-                {
-                    logMessage = "Failed to initialize QCAR because this " +
-                        "device is not supported.";
-                }
-                else
-                {
-                    logMessage = "Failed to initialize QCAR.";
-                }
-                
-                // Log error:
-                DebugLog.LOGE("InitQCARTask::onPostExecute: " + logMessage +
-                                " Exiting.");
-                
-                // Show dialog box with error message:
-                dialogError.setMessage(logMessage);  
-                dialogError.show();
-            }
         }
     }
     
@@ -206,45 +150,41 @@ public class FrameMarkers extends Activity
     private void storeScreenDimensions()
     {
         // Query display dimensions
-        DisplayMetrics metrics = new DisplayMetrics();
+/*        DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
         mScreenWidth = metrics.widthPixels;
-        mScreenHeight = metrics.heightPixels;
+        mScreenHeight = metrics.heightPixels; */
     }
 
 
     /** Called when the activity first starts or the user navigates back
      * to an activity. */
-    protected void onCreate(Bundle savedInstanceState)
+    public FrameMarkers(Bundle savedInstanceState, Context c, Activity a)
     {
         DebugLog.LOGD("FrameMarkers::onCreate");
-        super.onCreate(savedInstanceState);
         
-        // Set the splash screen image to display during initialization:
-        mSplashScreenImageResource = R.drawable.splash_screen_frame_markers;
-        
-        // Load any sample specific textures:  
+        this.c = c;
+        this.a = a;
+
         mTextures = new Vector<Texture>();
         loadTextures();
-        
+
         // Query the QCAR initialization flags:
         mQCARFlags = getInitializationFlags();
         
         // Update the application status to start initializing application
         updateApplicationStatus(APPSTATUS_INIT_APP);
-    }
+    }   
 
-    
     /** We want to load specific textures from the APK, which we will later
     use for rendering. */
     private void loadTextures()
     {
-        mTextures.add(Texture.loadTextureFromApk("letter_Q.png", getAssets()));
-        mTextures.add(Texture.loadTextureFromApk("letter_C.png", getAssets()));
-        mTextures.add(Texture.loadTextureFromApk("letter_A.png", getAssets()));
-        mTextures.add(Texture.loadTextureFromApk("letter_R.png", getAssets()));
+        mTextures.add(Texture.loadTextureFromApk("letter_Q.png", a.getAssets()));
+        mTextures.add(Texture.loadTextureFromApk("letter_C.png", a.getAssets()));
+        mTextures.add(Texture.loadTextureFromApk("letter_A.png", a.getAssets()));
+        mTextures.add(Texture.loadTextureFromApk("letter_R.png", a.getAssets()));
     }
-    
     
     /** Configure QCAR with the desired version of OpenGL ES. */
     private int getInitializationFlags()
@@ -267,10 +207,9 @@ public class FrameMarkers extends Activity
 
 
    /** Called when the activity will start interacting with the user.*/
-    protected void onResume()
+    public void onResume()
     {
         DebugLog.LOGD("FrameMarkers::onResume");
-        super.onResume();
         
         // QCAR-specific resume operation
         QCAR.onResume();
@@ -280,13 +219,6 @@ public class FrameMarkers extends Activity
         if (mAppStatus == APPSTATUS_CAMERA_STOPPED)
         {
             updateApplicationStatus(APPSTATUS_CAMERA_RUNNING);
-            
-            // Reactivate flash if it was active before pausing the app
-            if (mFlash)
-            {
-                boolean result = activateFlash(mFlash);
-                DebugLog.LOGI("Turning flash "+(mFlash?"ON":"OFF")+" "+(result?"WORKED":"FAILED")+"!!");
-            }
         }
         
         // Resume the GL view:
@@ -300,7 +232,6 @@ public class FrameMarkers extends Activity
     public void onConfigurationChanged(Configuration config)
     {
         DebugLog.LOGD("FrameMarkers::onConfigurationChanged");
-        super.onConfigurationChanged(config);
         
         storeScreenDimensions();
         
@@ -311,10 +242,9 @@ public class FrameMarkers extends Activity
 
 
     /** Called when the system is about to start resuming a previous activity.*/
-    protected void onPause()
+    public void onPause()
     {
         DebugLog.LOGD("FrameMarkers::onPause");
-        super.onPause();
         
         if (mGlView != null)
         {
@@ -337,18 +267,9 @@ public class FrameMarkers extends Activity
 
     
     /** The final call you receive before your activity is destroyed.*/
-    protected void onDestroy()
+    public void onDestroy()
     {
         DebugLog.LOGD("FrameMarkers::onDestroy");
-        super.onDestroy();
-        
-        // Dismiss the splash screen time out handler:
-        if (mSplashScreenHandler != null)
-        {
-            mSplashScreenHandler.removeCallbacks(mSplashScreenRunnable);
-            mSplashScreenRunnable = null;
-            mSplashScreenHandler = null;
-        }        
         
         // Cancel potentially running tasks
         if (mInitQCARTask != null &&
@@ -447,44 +368,20 @@ public class FrameMarkers extends Activity
                 // garbage collector will actually be run.
                 System.gc();
                 
-                // The elapsed time since the splash screen was visible:
-                long splashScreenTime = System.currentTimeMillis() - 
-                                            mSplashScreenStartTime;
-                long newSplashScreenTime = 0;
-                if (splashScreenTime < MIN_SPLASH_SCREEN_TIME)
-                {
-                    newSplashScreenTime = MIN_SPLASH_SCREEN_TIME -
-                                            splashScreenTime;   
-                }
-                
-                // Request a callback function after a given timeout to dismiss
-                // the splash screen:
-                mSplashScreenHandler = new Handler();
-                mSplashScreenRunnable =
-                    new Runnable() {
-                        public void run()
-                        {
-                            // Hide the splash screen
-                            mSplashScreenView.setVisibility(View.INVISIBLE);
-                            
-                            // Activate the renderer
-                            mRenderer.mIsActive = true;
+                // Activate the renderer
+                mRenderer.mIsActive = true;
     
-                            // Now add the GL surface view. It is important
-                            // that the OpenGL ES surface view gets added
-                            // BEFORE the camera is started and video
-                            // background is configured.
-                            addContentView(mGlView, new LayoutParams(
+                // Now add the GL surface view. It is important
+                // that the OpenGL ES surface view gets added
+                // BEFORE the camera is started and video
+                // background is configured.
+                a.addContentView(mGlView, new LayoutParams(
                                             LayoutParams.FILL_PARENT,
                                             LayoutParams.FILL_PARENT));
                             
-                            // Start the camera:
-                            updateApplicationStatus(APPSTATUS_CAMERA_RUNNING);
-                        }
-                };
+                // Start the camera:
+                updateApplicationStatus(APPSTATUS_CAMERA_RUNNING);
 
-                mSplashScreenHandler.postDelayed(mSplashScreenRunnable,
-                                                    newSplashScreenTime);
                 break;
                 
             case APPSTATUS_CAMERA_STOPPED:
@@ -511,52 +408,11 @@ public class FrameMarkers extends Activity
     /** Initialize application GUI elements that are not related to AR. */
     private void initApplication()
     {
-        // Set the screen orientation
-        //
-        // NOTE: It is recommended to set this because of the following reasons:
-        //
-        //    1.) Before Android 2.2 there is no reliable way to query the
-        //        absolute screen orientation from an activity, therefore using 
-        //        an undefined orientation is not recommended. Screen 
-        //        orientation matching orientation sensor measurements is also
-        //        not recommended as every screen orientation change triggers
-        //        deinitialization / (re)initialization steps in internal QCAR 
-        //        SDK components resulting in unnecessary overhead during 
-        //        application run-time.
-        //
-        //    2.) Android camera drivers seem to always deliver landscape images
-        //        thus QCAR SDK components (e.g. camera capturing) need to know 
-        //        when we are in portrait mode. Before Android 2.2 there is no 
-        //        standard, device-independent way to let the camera driver know 
-        //        that we are in portrait mode as each device seems to require a
-        //        different combination of settings to rotate camera preview 
-        //        frames images to match portrait mode views. Because of this,
-        //        we suggest that the activity using the QCAR SDK be locked
-        //        to landscape mode if you plan to support Android 2.1 devices
-        //        as well. Froyo is fine with both orientations.
-        int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-        
-        // Apply screen orientation
-        setRequestedOrientation(screenOrientation);
         
         // Pass on screen orientation info to native code
-        setActivityPortraitMode(screenOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setActivityPortraitMode(true);
 
         storeScreenDimensions();        
-
-        // As long as this window is visible to the user, keep the device's
-        // screen turned on and bright.
-        getWindow().setFlags(
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-              
-        // Create and add the splash screen view
-        mSplashScreenView = new ImageView(this);
-        mSplashScreenView.setImageResource(mSplashScreenImageResource);
-        addContentView(mSplashScreenView, new LayoutParams(
-                        LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-        
-        mSplashScreenStartTime = System.currentTimeMillis();
 
     }
     
@@ -577,7 +433,7 @@ public class FrameMarkers extends Activity
         int stencilSize = 0;
         boolean translucent = QCAR.requiresAlpha();
         
-        mGlView = new QCARSampleGLView(this);
+        mGlView = new QCARSampleGLView(c);
         mGlView.init(mQCARFlags, translucent, depthSize, stencilSize);
         
         mRenderer = new FrameMarkersRenderer();
@@ -585,90 +441,18 @@ public class FrameMarkers extends Activity
  
     }
     
-    
-    /** Invoked the first time when the options menu is displayed to give
-     *  the Activity a chance to populate its Menu with menu items. */
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
-        super.onCreateOptionsMenu(menu);
-        
-        menu.add("Toggle flash");
-        menu.add("Trigger autofocus");
-        
-        SubMenu focusModes = menu.addSubMenu("Focus Modes");
-        focusModes.add("Normal").setCheckable(true);
-        focusModes.add("Continuous Autofocus").setCheckable(true);
-        focusModes.add("Infinity").setCheckable(true);
-        focusModes.add("Macro Mode").setCheckable(true);
-        
-        return true;
-    }
-    
-    /** Invoked when the user selects an item from the Menu */
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
-        if(item.getTitle().equals("Toggle flash"))
-        {
-            mFlash = !mFlash;
-            boolean result = activateFlash(mFlash);
-            DebugLog.LOGI("Turning flash "+(mFlash?"ON":"OFF")+" "+(result?"WORKED":"FAILED")+"!!");
-        }
-        else if(item.getTitle().equals("Trigger autofocus"))
-        {
-            boolean result = autofocus();
-            DebugLog.LOGI("Autofocus requested"+(result?" successfully.":".  Not supported in current mode or on this device."));
-        }
-        else 
-        {
-            int arg = -1;
-            if(item.getTitle().equals("Normal"))
-                arg = 0;
-            if(item.getTitle().equals("Continuous Autofocus"))
-                arg = 1;
-            if(item.getTitle().equals("Infinity"))
-                arg = 2;
-            if(item.getTitle().equals("Macro Mode"))
-                arg = 3;
-            
-            if(arg != -1)
-            {
-                boolean result = setFocusMode(arg);
-                if (result)
-                {
-                    item.setChecked(true);
-                    if(checked != null && item != checked)
-                        checked.setChecked(false);
-                    checked = item;
-                }
-                
-                DebugLog.LOGI("Requested Focus mode "+item.getTitle()+(result?" successfully.":".  Not supported on this device."));
-            }
-        }
-        
-        return true;
-    }
-    
-    private MenuItem checked;
-    private boolean mFlash = false;
-    private native boolean activateFlash(boolean flash);
-    private native boolean autofocus();
-    private native boolean setFocusMode(int mode);
-
-    
     /** Returns the number of registered textures. */
     public int getTextureCount()
     {
         return mTextures.size();
     }
 
-    
     /** Returns the texture object at the specified index. */
     public Texture getTexture(int i)
     {
         return mTextures.elementAt(i);
     }
 
-    
     /** A helper for loading native libraries stored in "libs/armeabi*". */
     public static boolean loadLibrary(String nLibName)
     {
