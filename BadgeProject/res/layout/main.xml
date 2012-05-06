@@ -13,8 +13,8 @@
         >
         <com.jperla.badge.CameraSurfaceView
             android:id="@+id/surface_view"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="1px"
+            android:layout_height="1px"
             android:layout_weight="1"
             />
         <ImageView

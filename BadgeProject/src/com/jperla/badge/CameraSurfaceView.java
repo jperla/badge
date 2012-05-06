@@ -48,8 +48,6 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         this.holder.addCallback(this);
         this.holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
-        picTimer = new Timer();
-
         //camera.setFaceDetectionListener(new MyFaceAnalyzer());
     }
 
@@ -64,6 +62,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
             ioe.printStackTrace(System.out);
         }
 
+        picTimer = new Timer();
     }
 
     @Override
