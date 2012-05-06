@@ -4,3 +4,6 @@ gen/*
 
 *.swp
 *.DS_Store
+*.o
+*.o.d
+*.class
