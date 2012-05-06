@@ -1,7 +1,11 @@
 package com.jperla.badge;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.hardware.Camera;
 import android.hardware.Sensor;
@@ -9,6 +13,8 @@ import android.hardware.SensorManager;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorEvent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
@@ -16,19 +22,10 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ViewSwitcher;
-
-import java.io.IOException;
-import android.util.Log;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
-import android.content.Intent;
-import java.util.UUID;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import android.os.Handler;
-import android.os.Message;
+import java.util.UUID;
 
 public class BadgeActivity extends Activity implements SensorEventListener {
     ViewSwitcher switcher;
@@ -76,8 +73,6 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         mag_sensor = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         sm.registerListener(this, mag_sensor, SensorManager.SENSOR_DELAY_NORMAL);
 
-
-
         // Fetch the Bluetooth adapter and make sure it is enabled.
         bt_adapter = BluetoothAdapter.getDefaultAdapter();
         if(bt_adapter == null) {
@@ -95,10 +90,16 @@ public class BadgeActivity extends Activity implements SensorEventListener {
             public void handleMessage(Message msg) {
                 int what = msg.what;
 
+                BluetoothSocket s;
+
                 switch (what) {
                     case Constants.BT_CONN_ACCEPTED:
-                        BluetoothSocket s = (BluetoothSocket) msg.obj;
+                        s = (BluetoothSocket) msg.obj;
                         handleAccepted(s);
+                        break;
+                    case Constants.BT_CONN_CONNECTED:
+                        s = (BluetoothSocket) msg.obj;
+                        handleConnected(s);
                         break;
                     case Constants.BT_MSG_RCVD:
                         int bytes = msg.arg1;
@@ -195,15 +196,34 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         }
     }
 
+    void tryConnection()
+    {
+
+        String mac = bt_adapter.getAddress();
+
+        if(mac.equals(joe_mac)) {
+            // Act as server.
+            AcceptThread at = new AcceptThread(bt_adapter, handler);
+            at.start();
+        }
+        else {
+            // Act as client.
+            BluetoothDevice dev = bt_adapter.getRemoteDevice(joe_mac);
+            ConnectThread ct = new ConnectThread(dev, handler);
+            ct.start();
+        }
+
+    }
+
     public void handleAccepted(BluetoothSocket s) {
         // Handle the case where this phone is acting as the server.
-        open_connection = new ConnectedThread(s);
+        open_connection = new ConnectedThread(s, handler);
         open_connection.start();
     }
 
     public void handleConnected(BluetoothSocket s) {
         // Handle the case where this phone is acting as the client.
-        open_connection = new ConnectedThread(s);
+        open_connection = new ConnectedThread(s, handler);
         open_connection.start();
 
         byte[] bob = {1, 2, 3, 4};
@@ -223,115 +243,6 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         open_connection = null;
     }
 
-    private class ConnectThread extends Thread {
-        BluetoothDevice dev;
-        BluetoothSocket s;
-
-        public ConnectThread(BluetoothDevice device)
-        {
-            dev = device;
-            try {
-                s = dev.createRfcommSocketToServiceRecord(Constants.BT_UUID);
-                Log.d(Constants.LOG_TAG, "Created socket");
-            }
-            catch (IOException e) {
-                Log.d(Constants.LOG_TAG, "ERROR: " + e.toString());
-            }
-        }
-
-        public void run()
-        {
-            try {
-                Log.d(Constants.LOG_TAG, "Attempting to connect");
-                s.connect();
-                Log.d(Constants.LOG_TAG, "Connected to server");
-            }
-            catch (IOException e) {
-                Log.d(Constants.LOG_TAG, "ERROR: " + e.toString());
-                try { s.close(); } catch (IOException e2) { }
-            }
-
-            // Notify the application that the connection is established.
-            handleConnected(s);
-        }
-    }
-
-    private class ConnectedThread extends Thread {
-        private BluetoothSocket s;
-        private InputStream in;
-        private OutputStream out;
- 
-        public ConnectedThread(BluetoothSocket socket)
-        {
-            s = socket;
-            try {
-                in = socket.getInputStream();
-                out = socket.getOutputStream();
-            }
-            catch (IOException e) {
-                Log.d(Constants.LOG_TAG, "ERROR: " + e.toString());
-            }
-        }
- 
-        public void run()
-        {
-            byte[] buffer = new byte[1024];
-            int bytes;
- 
-            // Read until we get an exception.
-            while (true) {
-                try {
-                    bytes = in.read(buffer);
-                    handler.obtainMessage(Constants.BT_MSG_RCVD, bytes, -1, buffer).sendToTarget();
-                } catch (IOException e) {
-                    // Don't log this since it is expected to happen on connection close.
-                    //Log.d(Constants.LOG_TAG, "ERROR: " + e.toString());
-                    break;
-                }
-            }
-        }
- 
-        public void write(byte[] bytes)
-        {
-            try {
-                out.write(bytes);
-            }
-            catch (IOException e) {
-                Log.d(Constants.LOG_TAG, "ERROR: " + e.toString());
-            }
-        }
- 
-        public void close()
-        {
-            try {
-                s.close();
-                Log.d(Constants.LOG_TAG, "Closed socket");
-            } catch (IOException e) {
-                Log.d(Constants.LOG_TAG, "ERROR: " + e.toString());
-            }
-        }
-
-    }
-
-    void tryConnection()
-    {
-
-        String mac = bt_adapter.getAddress();
-
-        if(mac.equals(joe_mac)) {
-            // Act as server.
-            AcceptThread at = new AcceptThread(bt_adapter, handler);
-            at.start();
-        }
-        else {
-            // Act as client.
-            BluetoothDevice dev = bt_adapter.getRemoteDevice(joe_mac);
-            ConnectThread ct = new ConnectThread(dev);
-            ct.start();
-        }
-
-    }
-
     void showBadgeView()
     {
         switcher.setDisplayedChild(0);
@@ -341,3 +252,4 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         switcher.setDisplayedChild(1);
     }
 }
+
