@@ -1,15 +1,19 @@
-local.properties
+BadgeProject/local.properties
 BadgeProject/bin
+BadgeProject/build
 BadgeProject/gen
+BadgeProject/libs/armeabi/gdb.setup
+BadgeProject/libs/armeabi-v7a/gdb.setup
+BadgeProject/obj
 
 *.swp
 *.DS_Store
 *.o
 *.o.d
 *.class
+
+FrameMarkers/local.properties
 FrameMarkers/build
-
-
 FrameMarkers/bin
 FrameMarkers/gen
 FrameMarkers/obj
