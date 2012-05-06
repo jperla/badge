@@ -18,6 +18,8 @@ import android.os.Message;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -38,6 +40,8 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     
     BluetoothAdapter bt_adapter;
     Handler handler;
+    AcceptThread outstanding_accept = null;
+    ConnectThread outstanding_connect = null;
     ConnectedThread open_connection = null;
 
     static final int BT_ENABLE_ACTIVITY = 1;
@@ -60,6 +64,8 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         // Create an area to preview face detection results, and fetch camera
         cam_surface = (CameraSurfaceView) findViewById(R.id.surface_view);
         cam_surface.imageView = (ImageView) findViewById(R.id.id_bitmap);
+
+        cam_surface.imageView.setOnClickListener(click_listener);
 
         // Fetch the sensor manager.
         Context c = switcher.getContext();
@@ -126,9 +132,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
         if (bt_adapter.isEnabled()) {
             Log.d(Constants.LOG_TAG, "Bluetooth already enabled");
-            if (open_connection == null) {
-                tryConnection();
-            }
+            startListening();
         }
         else {
             Log.d(Constants.LOG_TAG, "Requesting to enable Bluetooth");
@@ -186,8 +190,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
             case BT_ENABLE_ACTIVITY:
                 if (resultCode == RESULT_OK) {
                     Log.d(Constants.LOG_TAG, "Bluetooth successfully enabled");
-
-                    tryConnection();
+                    startListening();
                 }
                 else {
                     Log.d(Constants.LOG_TAG, "ERROR: Could not enable Bluetooth.");
@@ -196,32 +199,63 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         }
     }
 
+    void startListening()
+    {
+        // 1 connection at a time
+        if (outstanding_accept != null || open_connection != null) {
+            return;
+        }
+
+        outstanding_accept = new AcceptThread(bt_adapter, handler);
+        outstanding_accept.start();
+    }
+
     void tryConnection()
     {
 
         String mac = bt_adapter.getAddress();
 
-        if(mac.equals(joe_mac)) {
-            // Act as server.
-            AcceptThread at = new AcceptThread(bt_adapter, handler);
-            at.start();
-        }
-        else {
+        if(!mac.equals(joe_mac)) {
             // Act as client.
+
+            if (outstanding_connect != null || open_connection != null) {
+                return;
+            }
+
             BluetoothDevice dev = bt_adapter.getRemoteDevice(joe_mac);
-            ConnectThread ct = new ConnectThread(dev, handler);
-            ct.start();
+            outstanding_connect = new ConnectThread(dev, handler);
+            outstanding_connect.start();
         }
 
     }
 
     public void handleAccepted(BluetoothSocket s) {
+
+        outstanding_accept = null;
+        if (open_connection != null) {
+            Log.d(Constants.LOG_TAG, "ERROR: active connection in handleAccepted");
+            try {
+                s.close();
+            } catch (IOException e) {}
+            return;
+        }
+
         // Handle the case where this phone is acting as the server.
         open_connection = new ConnectedThread(s, handler);
         open_connection.start();
     }
 
     public void handleConnected(BluetoothSocket s) {
+
+        outstanding_connect = null;
+        if (open_connection != null) {
+            Log.d(Constants.LOG_TAG, "ERROR: active connection in handleConnected");
+            try {
+                s.close();
+            } catch (IOException e) {}
+            return;
+        }
+
         // Handle the case where this phone is acting as the client.
         open_connection = new ConnectedThread(s, handler);
         open_connection.start();
@@ -251,5 +285,14 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     void showScheduleView() {
         switcher.setDisplayedChild(1);
     }
+
+    private OnClickListener click_listener = new OnClickListener() {
+        public void onClick(View v) {
+            Log.d(Constants.LOG_TAG, "Received click event");
+            tryConnection();
+        }
+    };
+
+
 }
 
