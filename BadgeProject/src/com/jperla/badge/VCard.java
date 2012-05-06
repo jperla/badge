@@ -52,6 +52,7 @@ public class VCard {
     // Research info
     public ArrayList<String> research_interests;
 
+
     // Generate a blank VCard.
     public VCard()
     {
@@ -69,6 +70,66 @@ public class VCard {
         talks_giving       = new ArrayList<String>();
 
         research_interests = new ArrayList<String>();
+    }
+
+    // Construct a VCard from a JSON repr stringesentation.
+    public VCard(String json_string) {
+        this();
+
+        try {
+
+            JSONObject jo = new JSONObject(json_string);
+
+            bachelors = jo.getBoolean("bachelors");
+            if (bachelors) {
+                bachelors_school = jo.getString("bachelors_school");
+                bachelors_gradyear = jo.getInt("bachelors_gradyear");
+                bachelors_advisors = JSONArray_to_ArrayListString(jo, "bachelors_advisors");
+            }
+
+            masters = jo.getBoolean("masters");
+            if (masters) {
+                masters_school = jo.getString("masters_school");
+                masters_gradyear = jo.getInt("masters_gradyear");
+                masters_advisors = JSONArray_to_ArrayListString(jo, "masters_advisors");
+            }
+
+            phd = jo.getBoolean("phd");
+            if (phd) {
+                phd_school = jo.getString("phd_school");
+                phd_gradyear = jo.getInt("phd_gradyear");
+                phd_advisors = JSONArray_to_ArrayListString(jo, "phd_advisors");
+            }
+
+            JSONArray jobs_arr = jo.getJSONArray("jobs");
+            for (int i = 0; i < jobs_arr.length(); i++) {
+                JSONObject job_obj = jobs_arr.getJSONObject(i);
+                jobs.add(new Job(job_obj.getString("company"),
+                                 job_obj.getString("title"),
+                                 job_obj.getInt("start_year"),
+                                 job_obj.getInt("end_year")));
+            }
+
+            talks_attended     = JSONArray_to_ArrayListString(jo, "talks_attended");
+            talks_attending    = JSONArray_to_ArrayListString(jo, "talks_attending");
+            talks_given        = JSONArray_to_ArrayListString(jo, "talks_given");
+            talks_giving       = JSONArray_to_ArrayListString(jo, "talks_giving");
+            research_interests = JSONArray_to_ArrayListString(jo, "research_interests");
+
+        }
+        catch(JSONException je) {}
+    }
+
+    public static ArrayList<String> JSONArray_to_ArrayListString(
+        JSONObject jo, String arr_name) throws JSONException
+    {
+        ArrayList<String> al = new ArrayList<String>();
+        JSONArray arr = jo.getJSONArray(arr_name);
+        for (int i = 0; i < arr.length(); i++) {
+            al.add(arr.getString(i));
+        }
+
+        return al;
     }
 
     // Get my card.
@@ -112,29 +173,24 @@ public class VCard {
             if (bachelors) {
                 jo.put("bachelors_school", bachelors_school);
                 jo.put("bachelors_gradyear", bachelors_gradyear);
-                for (String s : bachelors_advisors) {
-                    jo.append("bachelors_advisors", s);
-                }
+                jo.put("bachelors_advisors", new JSONArray(bachelors_advisors));
             }
 
             jo.put("masters", masters);
             if (masters) {
                 jo.put("masters_school", masters_school);
                 jo.put("masters_gradyear", masters_gradyear);
-                for (String s : masters_advisors) {
-                    jo.append("masters_advisors", s);
-                }
+                jo.put("masters_advisors", new JSONArray(masters_advisors));
             }
 
             jo.put("phd", phd);
             if (phd) {
                 jo.put("phd_school", phd_school);
                 jo.put("phd_gradyear", phd_gradyear);
-                for (String s : phd_advisors) {
-                    jo.append("phd_advisors", s);
-                }
+                jo.put("phd_advisors", new JSONArray(phd_advisors));
             }
 
+            jo.put("jobs", new JSONArray());
             for (Job j : jobs) {
                 JSONObject job_obj = new JSONObject();
                 job_obj.put("company",    j.company);
@@ -145,25 +201,11 @@ public class VCard {
                 jo.append("jobs", job_obj);
             }
 
-            for (String s : talks_attended) {
-                jo.append("talks_attended", s);
-            }
-
-            for (String s : talks_attending) {
-                jo.append("talks_attending", s);
-            }
-
-            for (String s : talks_given) {
-                jo.append("talks_given", s);
-            }
-
-            for (String s : talks_giving) {
-                jo.append("talks_giving", s);
-            }
-
-            for (String s : research_interests) {
-                jo.append("research_interests", s);
-            }
+            jo.put("talks_attended", talks_attended);
+            jo.put("talks_attending", talks_attending);
+            jo.put("talks_given", talks_given);
+            jo.put("talks_giving", talks_giving);
+            jo.put("research_interests", research_interests);
         }
         catch (JSONException je) { }
 
@@ -174,7 +216,13 @@ public class VCard {
     public static void main(String args[]) throws JSONException
     {
         VCard v = getBrandon();
-        System.out.println(v.toJSON().toString());
+        String s = v.toJSON().toString();
+        System.out.println(s + "\n");
+        VCard v2 = new VCard(s);
+        String s2 = v2.toJSON().toString();
+        System.out.println(s2 + "\n");
+        if (s.equals(s2)) System.out.println("SUCCESS!");
+        else System.out.println("FAILURE");
     }
 
 }
