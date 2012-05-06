@@ -29,6 +29,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
 
+// import com.qualcomm.QCARSamples.FrameMarkers;
+
 public class BadgeActivity extends Activity implements SensorEventListener {
     ViewSwitcher switcher;
     CameraSurfaceView cam_surface;

@@ -35,6 +35,8 @@ import android.widget.ImageView;
 
 import com.qualcomm.QCAR.QCAR;
 
+import com.jperla.badge.R;
+
 
 /** The main activity for the FrameMarkers sample. */
 public class FrameMarkers extends Activity
