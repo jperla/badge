@@ -13,3 +13,5 @@ FrameMarkers/build
 FrameMarkers/bin
 FrameMarkers/gen
 FrameMarkers/obj
+FrameMarkers/libs/armeabi/gdb.setup
+FrameMarkers/libs/armeabi-v7a/gdb.setup
