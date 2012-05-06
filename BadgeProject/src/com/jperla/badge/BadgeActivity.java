@@ -122,7 +122,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
             }
         };
 
-        fm = new FrameMarkers(savedInstanceState, c, this);
+        fm = new FrameMarkers(savedInstanceState, c, this, handler);
     }
 
     @Override

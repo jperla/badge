@@ -87,6 +87,7 @@ public class FrameMarkers
 
     Context c;
     Activity a;
+    Handler handler;
     
     /** Static initializer block to load native libraries on start-up. */
     static
@@ -159,12 +160,14 @@ public class FrameMarkers
 
     /** Called when the activity first starts or the user navigates back
      * to an activity. */
-    public FrameMarkers(Bundle savedInstanceState, Context c, Activity a)
+    public FrameMarkers(Bundle savedInstanceState, Context c, Activity a,
+                        Handler handler)
     {
         DebugLog.LOGD("FrameMarkers::onCreate");
         
         this.c = c;
         this.a = a;
+        this.handler = handler;
 
         mTextures = new Vector<Texture>();
         loadTextures();
