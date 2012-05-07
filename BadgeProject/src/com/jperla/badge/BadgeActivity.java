@@ -78,6 +78,12 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     Timer timer = new Timer();
     TimeoutTimerTask timer_task = null;
 
+    static long start_time = 0;
+
+    public static String elapsed_time() {
+        return ((System.currentTimeMillis() - start_time) / 1000.0) + "s";
+    }
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -148,11 +154,11 @@ public class BadgeActivity extends Activity implements SensorEventListener {
                         result = msg.arg1;
                         if (what == Constants.BT_CONN_ACCEPTED) {
                             outstanding_accept = null;
-                            Log.d(Constants.LOG_TAG, "Handler got BT_CONN_ACCEPTED: " + result);
+                            Log.d(Constants.LOG_TAG, "(T = " + elapsed_time() + ") Handler got BT_CONN_ACCEPTED: " + result);
                         }
                         else {
                             outstanding_connect = null;
-                            Log.d(Constants.LOG_TAG, "Handler got BT_CONN_CONNECTED: " + result);
+                            Log.d(Constants.LOG_TAG,  "(T = " + elapsed_time() + ") Handler got BT_CONN_CONNECTED: " + result);
                         }
 
                         if (result == Constants.SUCCESS) {
@@ -175,7 +181,9 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
                     case Constants.PHONE_ID_DETECTED:
                         int phone_id = msg.arg1;
-                        Log.d(Constants.LOG_TAG, "Handler got phone id: " + phone_id);
+                        Log.d(Constants.LOG_TAG, "(T = " + elapsed_time() + ") Handler got phone id: " + phone_id);
+                        if (start_time == 0)
+                            start_time = System.currentTimeMillis();
 
                         // Make sure there is no active pair.
                         if (active_pair) {
@@ -326,11 +334,13 @@ public class BadgeActivity extends Activity implements SensorEventListener {
             return;
         }
 
-        Log.d(Constants.LOG_TAG, "Attempting to connect to " + mac);
+        Log.d(Constants.LOG_TAG, "(T = " + elapsed_time() + ") Attempting to connect to " + mac);
 
         BluetoothDevice dev = bt_adapter.getRemoteDevice(mac);
         outstanding_connect = new ConnectThread(dev, handler);
         outstanding_connect.start();
+
+        Log.d(Constants.LOG_TAG, "(T = " + elapsed_time() + ") Launched connection thread");
 
     }
 
@@ -360,7 +370,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         open_connection.start();
 
         sendVCard(open_connection);
-        Log.d(Constants.LOG_TAG, "Sent card data");
+        Log.d(Constants.LOG_TAG, "(T = " + elapsed_time() + ") Sent card data");
     }
 
     public void sendVCard(ConnectedThread ct) 
@@ -408,7 +418,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
             msg_length_cur += bytes;
         }
 
-        Log.d(Constants.LOG_TAG, "Received " + bytes + " bytes (total " + msg_length_cur
+        Log.d(Constants.LOG_TAG, "(T = " + elapsed_time() + ") Received " + bytes + " bytes (total " + msg_length_cur
                                  + " of " + msg_length_total + ")");
 
         String vcard_string;
@@ -431,7 +441,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
             Log.d(Constants.LOG_TAG, "Received this string:");
             Log.d(Constants.LOG_TAG, vcard_string);
 
-            Log.d(Constants.LOG_TAG, "Received this v-card:");
+            Log.d(Constants.LOG_TAG, "(T = " + elapsed_time() + ") Received this v-card:");
             Log.d(Constants.LOG_TAG, their_card.toJSON().toString());
 
             msg_length_cur = 0;
@@ -448,6 +458,9 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     }
 
     public void onReceiveOtherVCard(VCard other) {
+        Log.d(Constants.LOG_TAG, "(T = " + elapsed_time() + ") onReceiveOtherVCard()");
+        start_time = 0;
+
         String common = VCard.extractCommonalities(my_vcard, other);
         textView.setText(common);
         textView.setTextSize(30);

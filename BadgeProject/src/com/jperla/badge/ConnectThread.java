@@ -20,7 +20,7 @@ public class ConnectThread extends Thread {
 
         try {
             s = dev.createRfcommSocketToServiceRecord(Constants.BT_UUID);
-            Log.d(Constants.LOG_TAG, "Created socket");
+            Log.d(Constants.LOG_TAG, "(T = " + BadgeActivity.elapsed_time() + ") Created socket");
         }
         catch (IOException e) {
             Log.d(Constants.LOG_TAG, "ERROR: " + e.toString());
@@ -30,9 +30,9 @@ public class ConnectThread extends Thread {
     public void run()
     {
         try {
-            Log.d(Constants.LOG_TAG, "Attempting to connect");
+            Log.d(Constants.LOG_TAG, "(T = " + BadgeActivity.elapsed_time() + ") Attempting to connect");
             s.connect();
-            Log.d(Constants.LOG_TAG, "Connected to server");
+            Log.d(Constants.LOG_TAG, "(T = " + BadgeActivity.elapsed_time() + ") Connected to server");
         }
         catch (IOException e) {
             Log.d(Constants.LOG_TAG, "ERROR: " + e.toString());
