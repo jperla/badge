@@ -114,7 +114,6 @@ public class BadgeActivity extends Activity implements SensorEventListener {
             Log.d(Constants.LOG_TAG, "Settting VCard to Brandon's");
             my_vcard = VCard.getBrandon();
         }
-        onReceiveOtherVCard(VCard.getZhao());
 
         Log.d(Constants.LOG_TAG, Constants.BT_UUID.toString());
 
@@ -408,6 +407,9 @@ public class BadgeActivity extends Activity implements SensorEventListener {
             open_connection.close();
             open_connection = null;
             startListening();
+
+            // Notify that we have received this v-card.
+            onReceiveOtherVCard(their_card);
 
         }
     }
