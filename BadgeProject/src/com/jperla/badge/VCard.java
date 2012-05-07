@@ -202,6 +202,30 @@ public class VCard {
         return Z;
     }
 
+    public static VCard getJoeLaptop()
+    {
+        VCard Z = new VCard();
+
+        Z.name = "Joseph Perla Laptop";
+        Z.institution = "Princeton University";
+
+        Z.bachelors = true;
+        Z.bachelors_school = "Princeton University";
+        Z.bachelors_gradyear = 2012;
+        Z.bachelors_advisors.add("David Blei");
+
+        Z.jobs.add(new Job("UCSD", 
+                           "PhD",
+                           2011, 2012));
+
+        Z.talks_attended.add("Javascript: The Good Parts");
+
+        Z.research_interests.add("Machine Learning");
+        Z.research_interests.add("Distributed Systems");
+
+        return Z;
+    }
+
     public static String extractCommonalities(VCard c1, VCard c2) {
         String s = "";
         ArrayList<String> common;

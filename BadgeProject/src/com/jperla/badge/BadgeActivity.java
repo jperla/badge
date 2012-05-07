@@ -63,6 +63,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     
     static final String brandon_mac = "9C:02:98:70:23:67";
     static final String zhao_mac = "B0:D0:9C:38:8C:A2";
+    static final String joe_laptop_mac = "10:93:E9:0C:62:45";
 
     FrameMarkers fm;
 
@@ -111,6 +112,9 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         if (my_mac.equals(zhao_mac)) {
             Log.d(Constants.LOG_TAG, "Setting VCard to Zhao's");
             my_vcard = VCard.getZhao();
+        } else if (my_mac.equals(joe_laptop_mac)) {
+            Log.d(Constants.LOG_TAG, "Setting VCard to Joe's laptop");
+            my_vcard = VCard.getJoeLaptop();
         } else {
             Log.d(Constants.LOG_TAG, "Settting VCard to Brandon's");
             my_vcard = VCard.getBrandon();
@@ -442,6 +446,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     void initializeMACs() {
         macs.put(0, zhao_mac);
         macs.put(2, brandon_mac);
+        macs.put(3, joe_laptop_mac);
     }
 
 }
