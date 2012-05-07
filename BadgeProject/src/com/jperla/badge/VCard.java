@@ -192,11 +192,11 @@ public class VCard {
 
         if (c1.bachelors && c2.bachelors) {
             if (sameString(c1.bachelors_school, c2.bachelors_school)) {
-                s += "Attended " + c1.bachelors_school + " for Bachelor's\n";
+                s += "Attended " + c1.bachelors_school + " for Bachelor's\n\n";
             }
             common = intersectList(c1.bachelors_advisors, c2.bachelors_advisors);
             if (common.size() > 0) {
-                s += "Worked with " + stringify(common) + "\n";
+                s += "Worked with " + stringify(common) + "\n\n";
             }
         }
 
@@ -204,27 +204,27 @@ public class VCard {
 
         common = intersectJobs(c1.jobs, c2.jobs);
         if (common.size() > 0) {
-            s += "Worked at " + stringify(common) + "\n";
+            s += "Worked at " + stringify(common) + "\n\n";
         }
 
         common = intersectList(c1.talks_attended, c2.talks_attended);
         if (common.size() > 0) {
-            s += "Attended the " + stringify(common) + " talks\n";
+            s += "Attended the " + stringify(common) + " talks\n\n";
         }
         
         common = intersectList(c1.talks_attending, c2.talks_attending);
         if (common.size() > 0) {
-            s += "Attending the " + stringify(common) + " talks\n";
+            s += "Attending the " + stringify(common) + " talks\n\n";
         }
 
         common = intersectList(c1.talks_given, c2.talks_given);
         if (common.size() > 0) {
-            s += "Attending the " + stringify(common) + " talks\n";
+            s += "Attending the " + stringify(common) + " talks\n\n";
         }
 
         common = intersectList(c1.research_interests, c2.research_interests);
         if (common.size() > 0) {
-            s += "Interested in these research areas: " + stringify(common) + "\n";
+            s += "Interested in these research areas: " + stringify(common) + "\n\n";
         }
 
         return s;

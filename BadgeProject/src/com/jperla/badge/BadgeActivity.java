@@ -109,7 +109,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         } else {
             my_vcard = VCard.getBrandon();
         }
-        onReceiveOtherVCard(VCard.getBrandon());
+        onReceiveOtherVCard(VCard.getZhao());
 
         Log.d(Constants.LOG_TAG, Constants.BT_UUID.toString());
 
@@ -230,11 +230,11 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
             // Use the pitch to determine whether we are in ID mode or
             // conference mode.
-            if (orientation[1] <= 0) {   // we're in conference mode
+            if (orientation[1] <= -0.2) {   // we're in conference mode
                 this.setRequestedOrientation(
                     ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                 showScheduleView();
-            } else {   // we're in ID mode
+            } else if (orientation[1] >= 0.2) {   // we're in ID mode
                 this.setRequestedOrientation(
                     ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
                 showBadgeView();
