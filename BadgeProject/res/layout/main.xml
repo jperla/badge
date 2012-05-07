@@ -24,13 +24,22 @@
             android:layout_weight="1"
             />
         <TextView
-            android:id="@+id/textView"
+            android:id="@+id/display_name"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
+            android:textSize="35sp"
+            android:text=""
+            />
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="5"
+            android:gravity="center"
             android:textSize="40sp"
-            android:text="Zhao Xu\n\n\nPrinceton University"
+            android:text=""
             />
     </LinearLayout>
 

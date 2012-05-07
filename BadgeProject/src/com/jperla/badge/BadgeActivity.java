@@ -116,7 +116,8 @@ public class BadgeActivity extends Activity implements SensorEventListener {
             my_vcard = VCard.getBrandon();
         }
         display_name = my_vcard.name + "\n" + my_vcard.institution + "\n\n";
-        onReceiveOtherVCard(VCard.getBrandon());
+        ((TextView) findViewById(R.id.display_name)).setText(display_name);
+        // onReceiveOtherVCard(VCard.getBrandon()); // for testing
 
         Log.d(Constants.LOG_TAG, Constants.BT_UUID.toString());
 
@@ -411,12 +412,14 @@ public class BadgeActivity extends Activity implements SensorEventListener {
             open_connection = null;
             startListening();
 
+            // Notify that we have received this v-card.
+            onReceiveOtherVCard(their_card);
+
         }
     }
 
     public void onReceiveOtherVCard(VCard other) {
-        String common = display_name;
-        common += VCard.extractCommonalities(my_vcard, other);
+        String common = VCard.extractCommonalities(my_vcard, other);
         textView.setText(common);
         textView.setTextSize(30);
     }

@@ -22,6 +22,9 @@ public class VCard {
         }
     }
 
+    public String name;
+    public String institution;
+
     // Bachelor's info
     public boolean bachelors;
     public String bachelors_school;
@@ -56,6 +59,9 @@ public class VCard {
     // Generate a blank VCard.
     public VCard()
     {
+        name = "Herp McDerp";
+        institution = "Derp University";
+
         bachelors = masters = phd = false;
 
         bachelors_advisors = new ArrayList<String>();
@@ -79,6 +85,9 @@ public class VCard {
         try {
 
             JSONObject jo = new JSONObject(json_string);
+
+            name = jo.getString("name");
+            institution = jo.getString("institution");
 
             bachelors = jo.getBoolean("bachelors");
             if (bachelors) {
@@ -137,6 +146,9 @@ public class VCard {
     {
         VCard B = new VCard();
 
+        B.name = "Brandon Podmayersky";
+        B.institution = "Princeton University";
+
         B.bachelors = true;
         B.bachelors_school = "Princeton University";
         B.bachelors_gradyear = 2012;
@@ -166,6 +178,9 @@ public class VCard {
     public static VCard getZhao()
     {
         VCard Z = new VCard();
+
+        Z.name = "Zhaoyang Xu";
+        Z.institution = "Princeton University";
 
         Z.bachelors = true;
         Z.bachelors_school = "Princeton University";
@@ -276,6 +291,10 @@ public class VCard {
         JSONObject jo = new JSONObject();
 
         try {
+
+            jo.put("name", name);
+            jo.put("institution", institution);
+
             jo.put("bachelors", bachelors);
             if (bachelors) {
                 jo.put("bachelors_school", bachelors_school);
