@@ -437,7 +437,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     // MAC addresses for our demo.
     void initializeMACs() {
         macs.put(0, zhao_mac);
-        macs.put(1, brandon_mac);
+        macs.put(2, brandon_mac);
     }
 
 }
