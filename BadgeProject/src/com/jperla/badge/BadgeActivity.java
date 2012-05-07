@@ -27,6 +27,9 @@ import android.widget.ViewSwitcher;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.TreeMap;
 import java.util.UUID;
 
@@ -53,7 +56,13 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     static final String joe_mac = "9C:02:98:70:23:67";
     static final String test_mac = "B0:D0:9C:38:8C:A2";
 
+    VCard my_vcard;
+
     FrameMarkers fm;
+
+    int msg_length_total = 0;
+    int msg_length_cur = 0;
+    byte[] cur_buffer = new byte[4096];
 
     /** Called when the activity is first created. */
     @Override
@@ -68,10 +77,6 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         switcher = (ViewSwitcher) findViewById(R.id.modeSwitcher);
-
-        // Create an area to preview face detection results, and fetch camera
-//        cam_surface = (CameraSurfaceView) findViewById(R.id.surface_view);
-//        cam_surface.imageView = (ImageView) findViewById(R.id.id_bitmap);
 
         // Fetch the sensor manager.
         Context c = switcher.getContext();
@@ -149,6 +154,15 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         };
 
         fm = new FrameMarkers(savedInstanceState, c, this, handler);
+
+        if (bt_adapter.getAddress().equals(test_mac)) {
+            Log.d(Constants.LOG_TAG, "Setting VCard to Zhao's");
+            my_vcard = VCard.getZhao();
+        }
+        else {
+            Log.d(Constants.LOG_TAG, "Settting VCard to Brandon's");
+            my_vcard = VCard.getBrandon();
+        }
     }
 
     @Override
@@ -268,7 +282,8 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
     }
 
-    public void handleAccepted(BluetoothSocket s) {
+    public void handleAccepted(BluetoothSocket s)
+    {
 
         if (open_connection != null) {
             Log.d(Constants.LOG_TAG, "ERROR: active connection in handleAccepted");
@@ -281,9 +296,13 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         // Handle the case where this phone is acting as the server.
         open_connection = new ConnectedThread(s, handler);
         open_connection.start();
+
+        sendVCard(open_connection);
+        Log.d(Constants.LOG_TAG, "Sent card data");
     }
 
-    public void handleConnected(BluetoothSocket s) {
+    public void handleConnected(BluetoothSocket s)
+    {
 
         if (open_connection != null) {
             Log.d(Constants.LOG_TAG, "ERROR: active connection in handleConnected");
@@ -297,23 +316,90 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         open_connection = new ConnectedThread(s, handler);
         open_connection.start();
 
-        byte[] bob = {1, 2, 3, 4};
-        open_connection.write(bob);
-        Log.d(Constants.LOG_TAG, "Sent data");
+        sendVCard(open_connection);
+        Log.d(Constants.LOG_TAG, "Sent card data");
 
-        open_connection.close();
-        open_connection = null;
-        startListening();
     }
 
-    public void rcvMessage(int bytes, byte[] buffer) {
-        Log.d(Constants.LOG_TAG, "Received message");
-        for (int i = 0; i < bytes; i++) {
-            Log.d(Constants.LOG_TAG, "buffer[" + i + "] =" + buffer[i]);
+    public void sendVCard(ConnectedThread ct) 
+    {
+        String card_string = my_vcard.toJSON().toString();
+        byte[] card_data;
+
+        try {
+            card_data = card_string.getBytes("ASCII");
         }
-        open_connection.close();
-        open_connection = null;
-        startListening();
+        catch (UnsupportedEncodingException e) {
+            Log.d(Constants.LOG_TAG, "ERROR: Unsupported encoding");
+            return;
+        }
+
+        Log.d(Constants.LOG_TAG, "Sending size " + card_data.length);
+        Log.d(Constants.LOG_TAG, "Sending this v-card:");
+        Log.d(Constants.LOG_TAG, card_string);
+
+        // Send the message size
+        ByteBuffer bb = ByteBuffer.allocate(4).putInt(card_data.length);
+        Log.d(Constants.LOG_TAG, "SND BYTES: " + bb.get(0) + ", " + bb.get(1) + ", " + bb.get(2) + ", " + bb.get(3));
+        byte[] size = bb.array();
+        ct.write(size);
+
+        // And then the message.
+        ct.write(card_data);
+    }
+
+    public void rcvMessage(int bytes, byte[] buffer)
+    {
+        VCard their_card;
+
+        ByteBuffer bb = ByteBuffer.wrap(buffer);
+
+        // Fetch the bytes of this message.
+        if (msg_length_total == 0) {
+            Log.d(Constants.LOG_TAG, "RCV BYTES: " + bb.get(0) + ", " + bb.get(1) + ", " + bb.get(2) + ", " + bb.get(3));
+            msg_length_total = bb.getInt();
+            bb.get(cur_buffer, 0, bytes - 4);
+            msg_length_cur += bytes - 4;
+        }
+        else {
+            bb.get(cur_buffer, msg_length_cur, bytes);
+            msg_length_cur += bytes;
+        }
+
+        Log.d(Constants.LOG_TAG, "Received " + bytes + " bytes (total " + msg_length_cur
+                                 + " of " + msg_length_total + ")");
+
+        String vcard_string;
+
+        // Check if we have received the whole v-card.
+        if (msg_length_cur == msg_length_total) {
+            try {
+                vcard_string = new String(
+                    Arrays.copyOfRange(cur_buffer, 0, msg_length_cur), "ASCII");
+                their_card = new VCard(vcard_string);
+            }
+            catch (UnsupportedEncodingException e) {
+                Log.d(Constants.LOG_TAG, "ERROR: Unsupported encoding");
+                open_connection.close();
+                open_connection = null;
+                startListening();
+                return;
+            }
+
+            Log.d(Constants.LOG_TAG, "Received this string:");
+            Log.d(Constants.LOG_TAG, vcard_string);
+
+            Log.d(Constants.LOG_TAG, "Received this v-card:");
+            Log.d(Constants.LOG_TAG, their_card.toJSON().toString());
+
+            msg_length_cur = 0;
+            msg_length_total = 0;
+
+            open_connection.close();
+            open_connection = null;
+            startListening();
+
+        }
     }
 
     void showBadgeView()

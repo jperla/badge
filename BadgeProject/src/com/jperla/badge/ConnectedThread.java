@@ -31,12 +31,13 @@ public class ConnectedThread extends Thread {
  
     public void run()
     {
-        byte[] buffer = new byte[1024];
+        byte[] buffer;
         int bytes;
  
         // Read until we get an exception.
         while (true) {
             try {
+                buffer = new byte[4096];
                 bytes = in.read(buffer);
 
                 handler.obtainMessage(Constants.BT_MSG_RCVD, bytes, -1, buffer).sendToTarget();

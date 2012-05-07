@@ -259,7 +259,7 @@ public class VCard {
                 jo.put("phd_advisors", new JSONArray(phd_advisors));
             }
 
-            jo.put("jobs", new JSONArray());
+            JSONArray jobs_arr = new JSONArray();
             for (Job j : jobs) {
                 JSONObject job_obj = new JSONObject();
                 job_obj.put("company",    j.company);
@@ -267,14 +267,15 @@ public class VCard {
                 job_obj.put("start_year", j.start_year);
                 job_obj.put("end_year",   j.end_year);
 
-                jo.append("jobs", job_obj);
+                jobs_arr.put(job_obj);
             }
+            jo.put("jobs", jobs_arr);
 
-            jo.put("talks_attended", talks_attended);
-            jo.put("talks_attending", talks_attending);
-            jo.put("talks_given", talks_given);
-            jo.put("talks_giving", talks_giving);
-            jo.put("research_interests", research_interests);
+            jo.put("talks_attended",     new JSONArray(talks_attended));
+            jo.put("talks_attending",    new JSONArray(talks_attending));
+            jo.put("talks_given",        new JSONArray(talks_given));
+            jo.put("talks_giving",       new JSONArray(talks_giving));
+            jo.put("research_interests", new JSONArray(research_interests));
         }
         catch (JSONException je) { }
 
