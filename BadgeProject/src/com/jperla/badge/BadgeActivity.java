@@ -51,6 +51,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     
     BluetoothAdapter bt_adapter;
     VCard my_vcard;
+    String display_name;
     Handler handler;
     AcceptThread outstanding_accept = null;
     ConnectThread outstanding_connect = null;
@@ -114,6 +115,9 @@ public class BadgeActivity extends Activity implements SensorEventListener {
             Log.d(Constants.LOG_TAG, "Settting VCard to Brandon's");
             my_vcard = VCard.getBrandon();
         }
+        display_name = my_vcard.name + "\n" + my_vcard.institution + "\n\n";
+        ((TextView) findViewById(R.id.display_name)).setText(display_name);
+        // onReceiveOtherVCard(VCard.getBrandon()); // for testing
 
         Log.d(Constants.LOG_TAG, Constants.BT_UUID.toString());
 

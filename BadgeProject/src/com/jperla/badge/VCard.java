@@ -196,6 +196,7 @@ public class VCard {
 
         Z.research_interests.add("Computer Vision");
         Z.research_interests.add("Computer Graphics");
+        Z.research_interests.add("Computer Networking");
         Z.research_interests.add("Virtual Worlds");
 
         return Z;
