@@ -19,7 +19,8 @@ public class ConnectThread extends Thread {
         this.handler = handler;
 
         try {
-            s = dev.createRfcommSocketToServiceRecord(Constants.BT_UUID);
+            //s = dev.createRfcommSocketToServiceRecord(Constants.BT_UUID);
+            s = dev.createInsecureRfcommSocketToServiceRecord(Constants.BT_UUID);
             Log.d(Constants.LOG_TAG, "Created socket");
         }
         catch (IOException e) {

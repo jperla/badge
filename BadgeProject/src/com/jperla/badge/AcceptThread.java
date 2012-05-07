@@ -21,7 +21,8 @@ public class AcceptThread extends Thread {
         this.handler = handler;
 
         try {
-            ss = bt_adapter.listenUsingRfcommWithServiceRecord("badge", Constants.BT_UUID);
+            //ss = bt_adapter.listenUsingRfcommWithServiceRecord("badge", Constants.BT_UUID);
+            ss = bt_adapter.listenUsingInsecureRfcommWithServiceRecord("badge", Constants.BT_UUID);
             Log.d(Constants.LOG_TAG, "Got server socket");
         }
         catch (IOException e) {
