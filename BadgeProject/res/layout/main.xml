@@ -17,12 +17,6 @@
             android:layout_height="1px"
             android:layout_weight="1"
             /> -->
-        <ImageView
-            android:id="@+id/id_bitmap"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            />
         <TextView
             android:id="@+id/display_name"
             android:layout_width="fill_parent"
@@ -38,7 +32,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="5"
             android:gravity="center"
-            android:textSize="40sp"
+            android:textSize="30sp"
             android:text=""
             />
     </LinearLayout>
@@ -49,11 +43,10 @@
         android:layout_height="fill_parent"
         android:gravity="top"
         >
-        <ImageView
-            android:id="@+id/schedule"
-            android:src="@drawable/schedule"
+        <ListView
+            android:id="@+id/list"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="fill_parent"
             />
     </LinearLayout>
 </ViewSwitcher>
