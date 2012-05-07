@@ -23,20 +23,25 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.ViewSwitcher;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.UUID;
 
 import com.qualcomm.QCARSamples.FrameMarkers.FrameMarkers;
+import com.jperla.badge.VCard;
 
 public class BadgeActivity extends Activity implements SensorEventListener {
     ViewSwitcher switcher;
+    TextView textView;
     CameraSurfaceView cam_surface;
     SensorManager sm;
     Sensor acc_sensor;
@@ -45,6 +50,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     float[] magnetic_vals = null;
     
     BluetoothAdapter bt_adapter;
+    VCard my_vcard;
     Handler handler;
     AcceptThread outstanding_accept = null;
     ConnectThread outstanding_connect = null;
@@ -53,10 +59,9 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     TreeMap<Integer, String> macs = new TreeMap<Integer, String>();
 
     static final int BT_ENABLE_ACTIVITY = 1;
-    static final String joe_mac = "9C:02:98:70:23:67";
-    static final String test_mac = "B0:D0:9C:38:8C:A2";
-
-    VCard my_vcard;
+    
+    static final String brandon_mac = "9C:02:98:70:23:67";
+    static final String zhao_mac = "B0:D0:9C:38:8C:A2";
 
     FrameMarkers fm;
 
@@ -77,6 +82,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         switcher = (ViewSwitcher) findViewById(R.id.modeSwitcher);
+        textView = (TextView) findViewById(R.id.textView);
 
         // Fetch the sensor manager.
         Context c = switcher.getContext();
@@ -92,12 +98,23 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
         // Fetch the Bluetooth adapter and make sure it is enabled.
         bt_adapter = BluetoothAdapter.getDefaultAdapter();
-        if(bt_adapter == null) {
+        if (bt_adapter == null) {
             Log.d(Constants.LOG_TAG, "ERROR: No Bluetooth adapter found");
         }
         else {
             Log.d(Constants.LOG_TAG, "Successfully found Bluetooth adapter");
         }
+
+        // Fetch my VCard by looking up my mac address
+        String my_mac = bt_adapter.getAddress();
+        if (my_mac.equals(zhao_mac)) {
+            Log.d(Constants.LOG_TAG, "Setting VCard to Zhao's");
+            my_vcard = VCard.getZhao();
+        } else {
+            Log.d(Constants.LOG_TAG, "Settting VCard to Brandon's");
+            my_vcard = VCard.getBrandon();
+        }
+        onReceiveOtherVCard(VCard.getZhao());
 
         Log.d(Constants.LOG_TAG, Constants.BT_UUID.toString());
 
@@ -155,14 +172,6 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
         fm = new FrameMarkers(savedInstanceState, c, this, handler);
 
-        if (bt_adapter.getAddress().equals(test_mac)) {
-            Log.d(Constants.LOG_TAG, "Setting VCard to Zhao's");
-            my_vcard = VCard.getZhao();
-        }
-        else {
-            Log.d(Constants.LOG_TAG, "Settting VCard to Brandon's");
-            my_vcard = VCard.getBrandon();
-        }
     }
 
     @Override
@@ -211,6 +220,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
                 break;
         }
 
+
         // If we have all the necessary data, update the orientation.
         if (acceleration_vals != null && magnetic_vals != null) {
             float[] R = new float[16];
@@ -227,11 +237,11 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
             // Use the pitch to determine whether we are in ID mode or
             // conference mode.
-            if (orientation[1] <= 0) {   // we're in conference mode
+            if (orientation[1] <= -0.2) {   // we're in conference mode
                 this.setRequestedOrientation(
                     ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                 showScheduleView();
-            } else {   // we're in ID mode
+            } else if (orientation[1] >= 0.2) {   // we're in ID mode
                 this.setRequestedOrientation(
                     ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
                 showBadgeView();
@@ -402,6 +412,12 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         }
     }
 
+    public void onReceiveOtherVCard(VCard other) {
+        String common = VCard.extractCommonalities(my_vcard, other);
+        textView.setText(common);
+        textView.setTextSize(30);
+    }
+
     void showBadgeView()
     {
         switcher.setDisplayedChild(0);
@@ -418,8 +434,8 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
     // MAC addresses for our demo.
     void initializeMACs() {
-        macs.put(0, test_mac);
-        macs.put(1, joe_mac);
+        macs.put(0, zhao_mac);
+        macs.put(1, brandon_mac);
     }
 
 }

@@ -186,39 +186,63 @@ public class VCard {
         return Z;
     }
 
-    public static VCard intersect(VCard c1, VCard c2) {
-        VCard r = new VCard();
+    public static String extractCommonalities(VCard c1, VCard c2) {
+        String s = "";
+        ArrayList<String> common;
+
         if (c1.bachelors && c2.bachelors) {
-            r.bachelors = true;
             if (sameString(c1.bachelors_school, c2.bachelors_school)) {
-                r.bachelors_school = c1.bachelors_school;
+                s += "Attended " + c1.bachelors_school + " for Bachelor's\n\n";
             }
-            r.bachelors_advisors = intersectList(c1.bachelors_advisors, c2.bachelors_advisors);
-        }
-        if (c1.masters && c2.masters) {
-            r.masters = true;
-            if (sameString(c1.masters_school, c2.masters_school)) {
-                r.masters_school = c1.masters_school;
+            common = intersectList(c1.bachelors_advisors, c2.bachelors_advisors);
+            if (common.size() > 0) {
+                s += "Worked with " + stringify(common) + "\n\n";
             }
-            r.masters_advisors = intersectList(c1.masters_advisors, c2.masters_advisors);
-        }
-        if (c1.phd && c2.phd) {
-            r.phd = true;
-            if (sameString(c1.phd_school, c2.phd_school)) {
-                r.phd_school = c1.phd_school;
-            }
-            r.phd_advisors = intersectList(c1.phd_advisors, c2.phd_advisors);
         }
 
-        r.jobs = intersectList(c1.jobs, c2.jobs);
-        r.talks_attended = intersectList(c1.talks_attended, c2.talks_attended);
-        r.talks_attending = intersectList(c1.talks_attending, c2.talks_attending);
-        r.talks_given = intersectList(c1.talks_given, c2.talks_given);
-        r.talks_giving = intersectList(c1.talks_giving, c2.talks_giving);
+        // TODO: same for master's and phd
 
-        r.research_interests = intersectList(c1.research_interests, c2.research_interests);
+        common = intersectJobs(c1.jobs, c2.jobs);
+        if (common.size() > 0) {
+            s += "Worked at " + stringify(common) + "\n\n";
+        }
 
-        return r;
+        common = intersectList(c1.talks_attended, c2.talks_attended);
+        if (common.size() > 0) {
+            s += "Attended the " + stringify(common) + " talks\n\n";
+        }
+        
+        common = intersectList(c1.talks_attending, c2.talks_attending);
+        if (common.size() > 0) {
+            s += "Attending the " + stringify(common) + " talks\n\n";
+        }
+
+        common = intersectList(c1.talks_given, c2.talks_given);
+        if (common.size() > 0) {
+            s += "Attending the " + stringify(common) + " talks\n\n";
+        }
+
+        common = intersectList(c1.research_interests, c2.research_interests);
+        if (common.size() > 0) {
+            s += "Interested in these research areas: " + stringify(common) + "\n\n";
+        }
+
+        return s;
+    }
+
+    private static String stringify(ArrayList<String> l) {
+        switch(l.size()) {
+            case 0: return "";
+            case 1: return l.get(0);
+            case 2: return l.get(0) + " and " + l.get(1);
+            default:
+                String str = "";
+                for (int i = 0; i < l.size() - 1; i++) {
+                    str = l.get(i) + ", ";
+                }
+                str += "and " + l.get(l.size() - 1);
+                return str;
+        }
     }
 
     private static boolean sameString(String s1, String s2) {
@@ -228,6 +252,19 @@ public class VCard {
     private static ArrayList intersectList(ArrayList l1, ArrayList l2) {
         ArrayList result = new ArrayList(l1);
         result.retainAll(l2);
+        return result;
+    }
+
+    private static ArrayList intersectJobs(ArrayList<Job> l1, ArrayList<Job> l2) {
+        ArrayList<String> result = new ArrayList<String>();
+        for (Job j1 : l1) {
+            for (Job j2 : l2) {
+                if (j1.company.equals(j2.company)) {
+                    result.add(j1.company);
+                    break;
+                }
+            }
+        }
         return result;
     }
 
@@ -298,8 +335,8 @@ public class VCard {
         // Test list intersection
         VCard z = getZhao();
         System.out.println("Zhao's card: \n" + z.toJSON().toString() + "\n");
-        VCard r = VCard.intersect(v, z);
-        System.out.println("Zhao and Brandon's intersection: \n" + r.toJSON().toString() + "\n");
+        String str = VCard.extractCommonalities(v, z);
+        System.out.println("Zhao and Brandon's commonalities: \n" + str);
     }
 
 }
