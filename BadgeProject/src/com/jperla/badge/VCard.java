@@ -308,6 +308,59 @@ public class VCard {
         return result;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        // Compare to see if names and institution are the same
+        if (other == null) return false;
+        if (other == this) return true;
+        if (!(other instanceof VCard)) return false;
+        VCard otherCard = (VCard)other;
+
+        return (otherCard.name == this.name) && (otherCard.institution == this.institution);
+    }
+
+    @Override
+    public String toString() {
+        String s = "";
+        s += name + "\n";
+        s += institution + "\n";
+
+        if (bachelors) {
+            s += "Bachelor's: " + bachelors_school + " " + bachelors_gradyear + "\n";
+            if (bachelors_advisors.size() > 0)
+                s += "\tAdvisor: " + stringify(bachelors_advisors) + "\n";
+        }
+
+        if (masters) {
+            s += "Masters: " + masters_school + " " + masters_gradyear + "\n";
+            if (masters_advisors.size() > 0)
+                s += "\tAdvisor: " + stringify(masters_advisors) + "\n";
+        }
+
+        if (phd) {
+            s += "Ph.D.: " + phd_school + " " + phd_gradyear + "\n";
+            if (phd_advisors.size() > 0)
+                s += "\tAdvisor: " + stringify(phd_advisors) + "\n";
+        }
+
+        for (Job j : jobs) {
+            s += j.company + ": " + j.title + " " + j.start_year + " - " + j.end_year + "\n";
+        }
+
+        if (talks_attended.size() > 0)
+            s += "Attended talks: " + stringify(talks_attended) + "\n";
+        if (talks_attending.size() > 0)
+            s += "Attending talks: " + stringify(talks_attending) + "\n";
+        if (talks_given.size() > 0)
+            s += "Gave talks: " + stringify(talks_given) + "\n";
+        if (talks_giving.size() > 0)
+            s += "Giving talks: " + stringify(talks_giving) + "\n";
+
+        if (research_interests.size() > 0)
+            s += "Research interests: " + stringify(research_interests) + "\n";
+        return s;
+    }
+
 
     // Convert to JSON representation to send over network.
     public JSONObject toJSON()

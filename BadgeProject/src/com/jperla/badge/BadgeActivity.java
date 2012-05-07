@@ -22,7 +22,11 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
@@ -42,8 +46,12 @@ import com.qualcomm.QCARSamples.FrameMarkers.FrameMarkers;
 import com.jperla.badge.VCard;
 
 public class BadgeActivity extends Activity implements SensorEventListener {
+
+
+
     ViewSwitcher switcher;
     TextView textView;
+    ListView lv;
     CameraSurfaceView cam_surface;
     SensorManager sm;
     Sensor acc_sensor;
@@ -53,6 +61,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     
     BluetoothAdapter bt_adapter;
     VCard my_vcard;
+    ArrayList<VCard> vcard_list;
     String display_name;
     Handler handler;
     AcceptThread outstanding_accept = null;
@@ -134,6 +143,30 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         }
         display_name = my_vcard.name + "\n" + my_vcard.institution + "\n\n";
         ((TextView) findViewById(R.id.display_name)).setText(display_name);
+        vcard_list = new ArrayList<VCard>();
+        // vcard_list.add(VCard.getJoeLaptop();
+        String[] vcard_ary = new String[] {""};
+
+        lv = (ListView) findViewById(R.id.list);
+        lv.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1, vcard_ary));
+
+        lv.setClickable(true);
+        lv.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
+                Intent myIntent = new Intent(BadgeActivity.this, VCardActivity.class);
+                myIntent.putExtra("card", vcard_list.get((int)id).toString());
+                BadgeActivity.this.startActivity(myIntent);
+            }
+        });
+
+        // Set up VCard list
+        /*
+        ListView lv = (ListView) findViewById(R.id.list);
+        lv.setAdapter(new ArrayAdapter<String>(this, R.layout.simple_list_item, vcard_ary));
+
+        */
+
 
         Log.d(Constants.LOG_TAG, Constants.BT_UUID.toString());
 
@@ -464,6 +497,11 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         String common = VCard.extractCommonalities(my_vcard, other);
         textView.setText(common);
         textView.setTextSize(30);
+
+        // Save their VCard
+        if (!vcard_list.contains(other)) {
+            vcard_list.add(other);
+        }
     }
 
     public void onDisconnect() {
@@ -471,12 +509,16 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         handler.obtainMessage(Constants.CLEAR_SCREEN, -1, -1, null).sendToTarget();
     }
 
-    void showBadgeView()
-    {
+    void showBadgeView() {
         switcher.setDisplayedChild(0);
     }
 
     void showScheduleView() {
+        String[] ary = new String[vcard_list.size()];
+        for (int i = 0; i < vcard_list.size(); i++) {
+            ary[i] = vcard_list.get(i).name + "\n" + vcard_list.get(i).institution;
+        }
+        lv.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1, ary));
         switcher.setDisplayedChild(1);
     }
 
