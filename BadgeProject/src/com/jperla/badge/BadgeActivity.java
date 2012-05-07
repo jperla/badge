@@ -37,6 +37,8 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.TreeMap;
 import java.util.UUID;
 
@@ -72,12 +74,18 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     
     static final String brandon_mac = "9C:02:98:70:23:67";
     static final String zhao_mac = "B0:D0:9C:38:8C:A2";
+    static final String joe_laptop_mac = "10:93:E9:0C:62:45";
 
     FrameMarkers fm;
 
     int msg_length_total = 0;
     int msg_length_cur = 0;
     byte[] cur_buffer = new byte[4096];
+
+    boolean active_pair = false;
+    int active_partner = 0;
+    Timer timer = new Timer();
+    TimeoutTimerTask timer_task = null;
 
     /** Called when the activity is first created. */
     @Override
@@ -120,6 +128,9 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         if (my_mac.equals(zhao_mac)) {
             Log.d(Constants.LOG_TAG, "Setting VCard to Zhao's");
             my_vcard = VCard.getZhao();
+        } else if (my_mac.equals(joe_laptop_mac)) {
+            Log.d(Constants.LOG_TAG, "Setting VCard to Joe's laptop");
+            my_vcard = VCard.getJoeLaptop();
         } else {
             Log.d(Constants.LOG_TAG, "Settting VCard to Brandon's");
             my_vcard = VCard.getBrandon();
@@ -166,38 +177,67 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
                 switch (what) {
                     case Constants.BT_CONN_ACCEPTED:
-                        outstanding_accept = null;
-                        result = msg.arg1;
-                        Log.d(Constants.LOG_TAG, "Handler got BT_CONN_ACCEPTED: " + result);
-                        if (result == Constants.SUCCESS) {
-                            s = (BluetoothSocket) msg.obj;
-                            handleAccepted(s);
-                        }
-                        break;
                     case Constants.BT_CONN_CONNECTED:
-                        outstanding_connect = null;
                         result = msg.arg1;
-                        Log.d(Constants.LOG_TAG, "Handler got BT_CONN_CONNECTED: " + result);
+                        if (what == Constants.BT_CONN_ACCEPTED) {
+                            outstanding_accept = null;
+                            Log.d(Constants.LOG_TAG, "Handler got BT_CONN_ACCEPTED: " + result);
+                        }
+                        else {
+                            outstanding_connect = null;
+                            Log.d(Constants.LOG_TAG, "Handler got BT_CONN_CONNECTED: " + result);
+                        }
+
                         if (result == Constants.SUCCESS) {
                             s = (BluetoothSocket) msg.obj;
-                            handleConnected(s);
+                            handleConnection(s);
+                            active_pair = true;
+
+                            // Register a timeout for this pairing.
+                            timer_task = new TimeoutTimerTask();
+                            timer.schedule(timer_task, (long) (1000*Constants.DISPLAY_TIMEOUT));
                         }
                         break;
+
                     case Constants.BT_MSG_RCVD:
                         Log.d(Constants.LOG_TAG, "Handler got BT_MSG_RCVD");
                         int bytes = msg.arg1;
                         byte[] buffer = (byte[]) msg.obj;
                         rcvMessage(bytes, buffer);
                         break;
+
                     case Constants.PHONE_ID_DETECTED:
                         int phone_id = msg.arg1;
                         Log.d(Constants.LOG_TAG, "Handler got phone id: " + phone_id);
+
+                        // Make sure there is no active pair.
+                        if (active_pair) {
+                            Log.d(Constants.LOG_TAG, "Already have an active pairing with " + active_partner);
+        
+                            // If it is our partner, extend the timeout.
+                            if (active_partner == phone_id) {
+                                Log.d(Constants.LOG_TAG, "Extending timeout.");
+                                timer_task.cancel();
+                                timer_task = new TimeoutTimerTask();
+                                timer.schedule(timer_task, 1000*10);
+                            }
+
+                            break;
+                        }
+
+                        // Look up the phone.
                         String mac = macs.get(phone_id);
                         if (mac == null) {
                             Log.d(Constants.LOG_TAG, "ERROR: Phone id does not map to MAC address");
                             break;
                         }
+
+                        active_partner = phone_id;
                         tryConnection(mac);
+                        break;
+
+                    case Constants.CLEAR_SCREEN:
+                        textView.setText("");
                         break;
 
                 }
@@ -327,43 +367,33 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
     }
 
-    public void handleAccepted(BluetoothSocket s)
-    {
+    private class TimeoutTimerTask extends TimerTask {
 
-        if (open_connection != null) {
-            Log.d(Constants.LOG_TAG, "ERROR: active connection in handleAccepted");
-            try {
-                s.close();
-            } catch (IOException e) {}
-            return;
+        public TimeoutTimerTask() { }
+
+        // End the current connection state.
+        public void run() {
+            active_pair = false;
+            onDisconnect();
         }
-
-        // Handle the case where this phone is acting as the server.
-        open_connection = new ConnectedThread(s, handler);
-        open_connection.start();
-
-        sendVCard(open_connection);
-        Log.d(Constants.LOG_TAG, "Sent card data");
     }
 
-    public void handleConnected(BluetoothSocket s)
+    public void handleConnection(BluetoothSocket s)
     {
-
         if (open_connection != null) {
-            Log.d(Constants.LOG_TAG, "ERROR: active connection in handleConnected");
+            Log.d(Constants.LOG_TAG, "ERROR: active connection in handleConnection");
             try {
                 s.close();
             } catch (IOException e) {}
             return;
         }
 
-        // Handle the case where this phone is acting as the client.
+        // Send out the v-card.
         open_connection = new ConnectedThread(s, handler);
         open_connection.start();
 
         sendVCard(open_connection);
         Log.d(Constants.LOG_TAG, "Sent card data");
-
     }
 
     public void sendVCard(ConnectedThread ct) 
@@ -461,6 +491,11 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         }
     }
 
+    public void onDisconnect() {
+        Log.d(Constants.LOG_TAG, "Disconnected from device " + active_partner);
+        handler.obtainMessage(Constants.CLEAR_SCREEN, -1, -1, null).sendToTarget();
+    }
+
     void showBadgeView() {
         switcher.setDisplayedChild(0);
     }
@@ -483,6 +518,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     void initializeMACs() {
         macs.put(0, zhao_mac);
         macs.put(2, brandon_mac);
+        macs.put(3, joe_laptop_mac);
     }
 
 }
