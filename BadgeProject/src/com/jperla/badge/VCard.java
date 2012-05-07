@@ -1,5 +1,7 @@
 package com.jperla.badge;
 
+import android.util.Log;
+
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -316,7 +318,7 @@ public class VCard {
         if (!(other instanceof VCard)) return false;
         VCard otherCard = (VCard)other;
 
-        return (otherCard.name == this.name) && (otherCard.institution == this.institution);
+        return  (otherCard.name.equals(this.name)) && (otherCard.institution.equals(this.institution));
     }
 
     @Override

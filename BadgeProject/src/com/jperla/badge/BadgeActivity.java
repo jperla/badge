@@ -144,7 +144,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         display_name = my_vcard.name + "\n" + my_vcard.institution + "\n\n";
         ((TextView) findViewById(R.id.display_name)).setText(display_name);
         vcard_list = new ArrayList<VCard>();
-        // vcard_list.add(VCard.getJoeLaptop();
+        vcard_list.add(VCard.getJoeLaptop());
         String[] vcard_ary = new String[] {""};
 
         lv = (ListView) findViewById(R.id.list);
@@ -241,6 +241,11 @@ public class BadgeActivity extends Activity implements SensorEventListener {
                         }
 
                         active_partner = phone_id;
+
+                        // display connecting feedback
+                        textView.setText("Detected other phone. \n Connecting ...");
+                        textView.setTextSize(40);
+
                         tryConnection(mac);
                         break;
 
