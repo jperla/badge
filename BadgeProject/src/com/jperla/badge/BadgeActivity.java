@@ -23,17 +23,22 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.ViewSwitcher;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.UUID;
 
 import com.qualcomm.QCARSamples.FrameMarkers.FrameMarkers;
+import com.jperla.badge.VCard;
 
 public class BadgeActivity extends Activity implements SensorEventListener {
     ViewSwitcher switcher;
+    TextView textView;
     CameraSurfaceView cam_surface;
     SensorManager sm;
     Sensor acc_sensor;
@@ -42,6 +47,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     float[] magnetic_vals = null;
     
     BluetoothAdapter bt_adapter;
+    VCard my_vcard;
     Handler handler;
     AcceptThread outstanding_accept = null;
     ConnectThread outstanding_connect = null;
@@ -50,8 +56,9 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     TreeMap<Integer, String> macs = new TreeMap<Integer, String>();
 
     static final int BT_ENABLE_ACTIVITY = 1;
-    static final String joe_mac = "9C:02:98:70:23:67";
-    static final String test_mac = "B0:D0:9C:38:8C:A2";
+    
+    static final String brandon_mac = "9C:02:98:70:23:67";
+    static final String zhao_mac = "B0:D0:9C:38:8C:A2";
 
     FrameMarkers fm;
 
@@ -68,6 +75,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         switcher = (ViewSwitcher) findViewById(R.id.modeSwitcher);
+        textView = (TextView) findViewById(R.id.textView);
 
         // Create an area to preview face detection results, and fetch camera
 //        cam_surface = (CameraSurfaceView) findViewById(R.id.surface_view);
@@ -87,12 +95,21 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
         // Fetch the Bluetooth adapter and make sure it is enabled.
         bt_adapter = BluetoothAdapter.getDefaultAdapter();
-        if(bt_adapter == null) {
+        if (bt_adapter == null) {
             Log.d(Constants.LOG_TAG, "ERROR: No Bluetooth adapter found");
         }
         else {
             Log.d(Constants.LOG_TAG, "Successfully found Bluetooth adapter");
         }
+
+        // Fetch my VCard by looking up my mac address
+        String my_mac = bt_adapter.getAddress();
+        if (my_mac.equals(zhao_mac)) {
+            my_vcard = VCard.getZhao();
+        } else {
+            my_vcard = VCard.getBrandon();
+        }
+        onReceiveOtherVCard(VCard.getBrandon());
 
         Log.d(Constants.LOG_TAG, Constants.BT_UUID.toString());
 
@@ -316,6 +333,12 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         startListening();
     }
 
+    public void onReceiveOtherVCard(VCard other) {
+        String common = VCard.extractCommonalities(my_vcard, other);
+        textView.setText(common);
+        textView.setTextSize(30);
+    }
+
     void showBadgeView()
     {
         switcher.setDisplayedChild(0);
@@ -332,8 +355,8 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
     // MAC addresses for our demo.
     void initializeMACs() {
-        macs.put(0, test_mac);
-        macs.put(1, joe_mac);
+        macs.put(0, zhao_mac);
+        macs.put(1, brandon_mac);
     }
 
 }

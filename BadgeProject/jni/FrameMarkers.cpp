@@ -119,6 +119,36 @@ JNIEXPORT void JNICALL
     trackerManager.deinitTracker(QCAR::Tracker::MARKER_TRACKER);
 }
 
+JNIEXPORT int JNICALL
+Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIEnv *, jobject)
+{
+    //LOG("Java_com_qualcomm_QCARSamples_FrameMarkers_GLRenderer_renderFrame");
+ 
+    // Get the state from QCAR and mark the beginning of a rendering section
+    QCAR::State state = QCAR::Renderer::getInstance().begin();
+
+    // Did we find any trackables this frame?
+    for(int tIdx = 0; tIdx < state.getNumActiveTrackables(); tIdx++)
+    {
+        // Get the trackable:
+        const QCAR::Trackable* trackable = state.getActiveTrackable(tIdx);
+      
+        const QCAR::Marker* marker = static_cast<const QCAR::Marker*>(trackable);
+
+        int detectedId = marker->getMarkerId();
+
+        if (detectedId >= 0 && detectedId < 4) {
+            return detectedId;
+        }
+    }
+
+    QCAR::Renderer::getInstance().end();
+
+    return -1;
+}
+
+
+#if 0
 
 JNIEXPORT int JNICALL
 Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIEnv *, jobject)
@@ -251,6 +281,8 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
 
     return markerId;
 }
+
+#endif
 
 
 void

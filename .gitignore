@@ -2,6 +2,7 @@ BadgeProject/local.properties
 BadgeProject/bin
 BadgeProject/build
 BadgeProject/gen
+BadgeProject/lib
 BadgeProject/libs/armeabi/gdb.setup
 BadgeProject/libs/armeabi-v7a/gdb.setup
 BadgeProject/obj
@@ -17,6 +18,7 @@ FrameMarkers/local.properties
 FrameMarkers/build
 FrameMarkers/bin
 FrameMarkers/gen
+FrameMarkers/lib
 FrameMarkers/obj
 FrameMarkers/libs/armeabi/gdb.setup
 FrameMarkers/libs/armeabi-v7a/gdb.setup
