@@ -379,8 +379,7 @@ public class FrameMarkers
                 // BEFORE the camera is started and video
                 // background is configured.
                 a.addContentView(mGlView, new LayoutParams(
-                                            LayoutParams.FILL_PARENT,
-                                            LayoutParams.FILL_PARENT));
+                                            1, 1));
                             
                 // Start the camera:
                 updateApplicationStatus(APPSTATUS_CAMERA_RUNNING);
