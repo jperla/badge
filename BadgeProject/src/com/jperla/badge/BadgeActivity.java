@@ -158,7 +158,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
                             // Register a timeout for this pairing.
                             timer_task = new TimeoutTimerTask();
-                            timer.schedule(timer_task, 1000*10);
+                            timer.schedule(timer_task, (long) (1000*Constants.DISPLAY_TIMEOUT));
                         }
                         break;
 
