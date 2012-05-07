@@ -40,12 +40,17 @@ public class AcceptThread extends Thread {
                     ss.close();
                 
                     // Notify the application that the connection is established.
-                    handler.obtainMessage(Constants.BT_CONN_ACCEPTED, -1, -1, s).sendToTarget();
+                    handler.obtainMessage(Constants.BT_CONN_ACCEPTED, 
+                                          Constants.SUCCESS,
+                                          -1, s).sendToTarget();
                     break;
                 }
             }
             catch (IOException e) {
                 Log.d(Constants.LOG_TAG, "ERROR: " + e.toString());
+                handler.obtainMessage(Constants.BT_CONN_ACCEPTED, 
+                                      Constants.FAILURE,
+                                      -1, 0).sendToTarget();
                 break;
             }
         }

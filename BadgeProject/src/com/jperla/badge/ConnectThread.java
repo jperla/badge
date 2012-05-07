@@ -37,9 +37,14 @@ public class ConnectThread extends Thread {
         catch (IOException e) {
             Log.d(Constants.LOG_TAG, "ERROR: " + e.toString());
             try { s.close(); } catch (IOException e2) { }
+            handler.obtainMessage(Constants.BT_CONN_CONNECTED,
+                                  Constants.FAILURE, -1, s).sendToTarget();
+
+            return;
         }
 
         // Notify the application that the connection is established.
-        handler.obtainMessage(Constants.BT_CONN_CONNECTED, -1, -1, s).sendToTarget();
+        handler.obtainMessage(Constants.BT_CONN_CONNECTED,
+                              Constants.SUCCESS, -1, s).sendToTarget();
     }
 }

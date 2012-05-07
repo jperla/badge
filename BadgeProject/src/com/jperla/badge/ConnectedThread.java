@@ -51,6 +51,7 @@ public class ConnectedThread extends Thread {
     {
         try {
             out.write(bytes);
+            Log.d(Constants.LOG_TAG, "Sent " + bytes.length + " bytes of data");
         }
         catch (IOException e) {
             Log.d(Constants.LOG_TAG, "ERROR: " + e.toString());

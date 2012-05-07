@@ -20,7 +20,6 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -28,6 +27,7 @@ import android.widget.ViewSwitcher;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.TreeMap;
 import java.util.UUID;
 
 import com.qualcomm.QCARSamples.FrameMarkers.FrameMarkers;
@@ -47,8 +47,11 @@ public class BadgeActivity extends Activity implements SensorEventListener {
     ConnectThread outstanding_connect = null;
     ConnectedThread open_connection = null;
 
+    TreeMap<Integer, String> macs = new TreeMap<Integer, String>();
+
     static final int BT_ENABLE_ACTIVITY = 1;
     static final String joe_mac = "9C:02:98:70:23:67";
+    static final String test_mac = "B0:D0:9C:38:8C:A2";
 
     FrameMarkers fm;
 
@@ -69,8 +72,6 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         // Create an area to preview face detection results, and fetch camera
 //        cam_surface = (CameraSurfaceView) findViewById(R.id.surface_view);
 //        cam_surface.imageView = (ImageView) findViewById(R.id.id_bitmap);
-
-//        cam_surface.imageView.setOnClickListener(click_listener);
 
         // Fetch the sensor manager.
         Context c = switcher.getContext();
@@ -95,30 +96,51 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
         Log.d(Constants.LOG_TAG, Constants.BT_UUID.toString());
 
+        // Initialize the table of MAC addresses.
+        initializeMACs();
 
         handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
                 int what = msg.what;
-
+    
+                int result;
                 BluetoothSocket s;
 
                 switch (what) {
                     case Constants.BT_CONN_ACCEPTED:
-                        s = (BluetoothSocket) msg.obj;
-                        handleAccepted(s);
+                        outstanding_accept = null;
+                        result = msg.arg1;
+                        Log.d(Constants.LOG_TAG, "Handler got BT_CONN_ACCEPTED: " + result);
+                        if (result == Constants.SUCCESS) {
+                            s = (BluetoothSocket) msg.obj;
+                            handleAccepted(s);
+                        }
                         break;
                     case Constants.BT_CONN_CONNECTED:
-                        s = (BluetoothSocket) msg.obj;
-                        handleConnected(s);
+                        outstanding_connect = null;
+                        result = msg.arg1;
+                        Log.d(Constants.LOG_TAG, "Handler got BT_CONN_CONNECTED: " + result);
+                        if (result == Constants.SUCCESS) {
+                            s = (BluetoothSocket) msg.obj;
+                            handleConnected(s);
+                        }
                         break;
                     case Constants.BT_MSG_RCVD:
+                        Log.d(Constants.LOG_TAG, "Handler got BT_MSG_RCVD");
                         int bytes = msg.arg1;
                         byte[] buffer = (byte[]) msg.obj;
                         rcvMessage(bytes, buffer);
                         break;
                     case Constants.PHONE_ID_DETECTED:
-                        Log.d(Constants.LOG_TAG, "Handler got phone id: " + msg.arg1);
+                        int phone_id = msg.arg1;
+                        Log.d(Constants.LOG_TAG, "Handler got phone id: " + phone_id);
+                        String mac = macs.get(phone_id);
+                        if (mac == null) {
+                            Log.d(Constants.LOG_TAG, "ERROR: Phone id does not map to MAC address");
+                            break;
+                        }
+                        tryConnection(mac);
                         break;
 
                 }
@@ -230,28 +252,24 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         outstanding_accept.start();
     }
 
-    void tryConnection()
+    void tryConnection(String mac)
     {
 
-        String mac = bt_adapter.getAddress();
-
-        if(!mac.equals(joe_mac)) {
-            // Act as client.
-
-            if (outstanding_connect != null || open_connection != null) {
-                return;
-            }
-
-            BluetoothDevice dev = bt_adapter.getRemoteDevice(joe_mac);
-            outstanding_connect = new ConnectThread(dev, handler);
-            outstanding_connect.start();
+        // Act as client, reaching out to make a new connection.
+        if (outstanding_connect != null || open_connection != null) {
+            return;
         }
+
+        Log.d(Constants.LOG_TAG, "Attempting to connect to " + mac);
+
+        BluetoothDevice dev = bt_adapter.getRemoteDevice(mac);
+        outstanding_connect = new ConnectThread(dev, handler);
+        outstanding_connect.start();
 
     }
 
     public void handleAccepted(BluetoothSocket s) {
 
-        outstanding_accept = null;
         if (open_connection != null) {
             Log.d(Constants.LOG_TAG, "ERROR: active connection in handleAccepted");
             try {
@@ -267,7 +285,6 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
     public void handleConnected(BluetoothSocket s) {
 
-        outstanding_connect = null;
         if (open_connection != null) {
             Log.d(Constants.LOG_TAG, "ERROR: active connection in handleConnected");
             try {
@@ -286,6 +303,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
 
         open_connection.close();
         open_connection = null;
+        startListening();
     }
 
     public void rcvMessage(int bytes, byte[] buffer) {
@@ -295,6 +313,7 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         }
         open_connection.close();
         open_connection = null;
+        startListening();
     }
 
     void showBadgeView()
@@ -306,16 +325,15 @@ public class BadgeActivity extends Activity implements SensorEventListener {
         switcher.setDisplayedChild(1);
     }
 
-    private OnClickListener click_listener = new OnClickListener() {
-        public void onClick(View v) {
-            Log.d(Constants.LOG_TAG, "Received click event");
-            tryConnection();
-        }
-    };
-
     protected void onDestroy() {
         super.onDestroy();
         fm.onDestroy();
+    }
+
+    // MAC addresses for our demo.
+    void initializeMACs() {
+        macs.put(0, test_mac);
+        macs.put(1, joe_mac);
     }
 
 }
